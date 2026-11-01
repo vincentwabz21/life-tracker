@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+    <title>Life Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-[#121212] text-zinc-300 font-sans h-screen flex flex-col md:flex-row overflow-hidden selection:bg-teal-900 selection:text-teal-100">
+
+    <!-- Login Lock Screen Overlay -->
+    <div id="auth-lock-screen" class="fixed inset-0 bg-[#121212] z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-[#1C1C1E] border border-zinc-800/80 rounded-2xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center text-3xl mb-4 shadow-lg">
+                <i class="ph-bold ph-lock-key"></i>
+            </div>
+            <h2 class="text-xl font-semibold text-zinc-100 mb-1">Life Tracker Locked</h2>
+            <p id="lock-subtitle" class="text-xs text-zinc-400 mb-6">Enter your username and password to unlock your dashboard.</p>
+            
+            <form onsubmit="handleUnlock(event)" class="w-full space-y-4">
+                <div id="lock-user-container">
+                    <input type="text" id="lock-username-input" placeholder="Username" class="w-full bg-[#121212] text-zinc-200 border border-zinc-800 px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-teal-500/50 transition-all mb-3" autofocus>
+                </div>
+                <div>
+                    <input type="password" id="lock-password-input" placeholder="Password" class="w-full bg-[#121212] text-zinc-200 border border-zinc-800 px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-teal-500/50 transition-all" required>
+                </div>
+                <button type="submit" class="w-full bg-teal-500 hover:bg-teal-600 text-zinc-950 font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-teal-500/10">
+                    Unlock Dashboard
+                </button>
+            </form>
+            <p id="lock-hint" class="text-[11px] text-zinc-500 mt-4">Default credentials: Username <code class="text-teal-400">admin</code>, Password <code class="text-teal-400">1234</code></p>
+        </div>
+    </div>
+
+    <!-- Desktop Sidebar (Hidden on Mobile) -->
+    <aside class="hidden md:flex flex-col w-64 bg-[#18181A] border-r border-zinc-800/50 h-full shadow-2xl z-20 justify-between">
+        <div>
+            <!-- Profile Section matching the design -->
+            <div onclick="switchTab('profile')" class="p-8 flex flex-col items-center justify-center border-b border-zinc-800/50 mb-4 cursor-pointer group hover:bg-zinc-800/20 transition-colors">
+                <div class="relative mb-3">
+                    <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Janice+Chandler&background=14b8a6&color=fff&rounded=true" alt="User Profile" class="w-16 h-16 rounded-full shadow-lg border-2 border-[#18181A] object-cover">
+                    <span class="absolute bottom-0 right-0 bg-teal-500 text-zinc-950 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
+                        <i class="ph-bold ph-pencil-simple text-xs block"></i>
+                    </span>
+                </div>
+                <h2 id="sidebar-name" class="text-sm font-semibold text-zinc-100 tracking-wide">Janice Chandler</h2>
+                <p id="sidebar-bio" class="text-xs text-zinc-500 mt-0.5">Personal Tracker</p>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1" id="desktop-nav">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all bg-zinc-800/80 text-teal-400 font-medium text-sm shadow-sm" data-icon="ph-squares-four">
+                    <i class="ph-fill ph-squares-four text-lg"></i> Dashboard
+                </button>
+                <button onclick="switchTab('habits')" id="nav-habits" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm" data-icon="ph-house">
+                    <i class="ph ph-house text-lg"></i> Habits
+                </button>
+                <button onclick="switchTab('weight')" id="nav-weight" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm" data-icon="ph-scales">
+                    <i class="ph ph-scales text-lg"></i> Weight
+                </button>
+                <button onclick="switchTab('finance')" id="nav-finance" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm" data-icon="ph-wallet">
+                    <i class="ph ph-wallet text-lg"></i> Finances
+                </button>
+                <button onclick="switchTab('goals')" id="nav-goals" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm" data-icon="ph-target">
+                    <i class="ph ph-target text-lg"></i> Goals
+                </button>
+                <button onclick="switchTab('study')" id="nav-study" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm" data-icon="ph-book-open">
+                    <i class="ph ph-book-open text-lg"></i> Daily Study
+                </button>
+                <button onclick="switchTab('profile')" id="nav-profile" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm" data-icon="ph-user">
+                    <i class="ph ph-user text-lg"></i> Profile & Security
+                </button>
+                <button onclick="lockAppSession()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-rose-400/80 hover:bg-rose-500/10 hover:text-rose-400 font-medium text-sm mt-4">
+                    <i class="ph ph-lock text-lg"></i> Lock App
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Bottom Logo matching design -->
+        <div class="p-6 border-t border-zinc-800/50">
+             <h1 class="text-xl font-bold tracking-widest text-zinc-300 flex items-center gap-2">
+                <i class="ph-bold ph-activity text-teal-500"></i> TRACKER
+             </h1>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto pb-24 md:pb-0 relative bg-[#121212]">
+        <div class="max-w-5xl mx-auto p-4 md:p-8 relative z-10">
+
+            <!-- Mobile Header -->
+            <div class="md:hidden flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <i class="ph-bold ph-activity text-2xl text-teal-500"></i>
+                    <h1 class="text-xl font-bold text-zinc-100 tracking-widest">TRACKER</h1>
+                </div>
+                <button onclick="switchTab('profile')" class="flex items-center gap-2">
+                    <img id="mobile-avatar" src="https://ui-avatars.com/api/?name=Janice+Chandler&background=14b8a6&color=fff&rounded=true" alt="Profile" class="w-8 h-8 rounded-full border border-zinc-700 object-cover">
+                </button>
+            </div>
+
+            <!-- TAB: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content active">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Overview</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Your daily progress at a glance.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Habits Summary -->
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('habits')">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-house text-teal-500"></i> Today's Habits</h3>
+                            <span id="dash-habit-percent" class="text-lg font-bold text-zinc-200">0%</span>
+                        </div>
+                        <div class="w-full bg-[#121212] rounded-full h-2.5 mb-2 overflow-hidden border border-zinc-800">
+                            <div id="dash-habit-bar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                        </div>
+                        <p id="dash-habit-text" class="text-xs text-zinc-500">0 of 0 habits completed today</p>
+                    </div>
+
+                    <!-- Goals Summary -->
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('goals')">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-target text-amber-500"></i> Goal Progress</h3>
+                            <span id="dash-goal-percent" class="text-lg font-bold text-zinc-200">0%</span>
+                        </div>
+                        <div class="w-full bg-[#121212] rounded-full h-2.5 mb-2 overflow-hidden border border-zinc-800">
+                            <div id="dash-goal-bar" class="bg-amber-500 h-2.5 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-zinc-500">Average completion across all goals</p>
+                    </div>
+
+                    <!-- Finance Summary -->
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('finance')">
+                        <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-wallet text-purple-500"></i> Net Balance</h3>
+                        <p class="text-3xl font-semibold text-zinc-200 mb-4" id="dash-finance-balance">£0.00</p>
+                        <div class="flex justify-between text-xs font-medium">
+                            <span class="text-zinc-500">In: <span class="text-purple-400" id="dash-finance-income">£0.00</span></span>
+                            <span class="text-zinc-500">Out: <span class="text-rose-400" id="dash-finance-expense">£0.00</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Weight Summary -->
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('weight')">
+                        <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-scales text-blue-500"></i> Current Weight</h3>
+                        <p class="text-3xl font-semibold text-zinc-200 mb-2" id="dash-weight-current">-- kg</p>
+                        <p class="text-xs font-medium text-zinc-500" id="dash-weight-trend">No data yet</p>
+                    </div>
+
+                    <!-- Daily Study Summary (Full Width on Desktop) -->
+                    <div class="md:col-span-2 bg-gradient-to-r from-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-teal-800/50 transition-all cursor-pointer" onclick="switchTab('study')">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-2">
+                                <i class="ph-fill ph-book-open"></i> Morning Verse (5:30 AM Daily)
+                            </h3>
+                            <span id="dash-study-ref" class="text-xs font-bold text-zinc-400 bg-zinc-800/80 px-2.5 py-1 rounded-lg">Loading...</span>
+                        </div>
+                        <p id="dash-study-summary" class="text-sm text-zinc-300 italic line-clamp-2">"Fetching today's scripture passage..."</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: HABITS -->
+            <section id="tab-habits" class="tab-content">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Habits</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Track your weekly habits and progress.</p>
+                </header>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Add Habit</h3>
+                            <form id="habit-form" class="space-y-4">
+                                <div>
+                                    <input type="text" id="habit-input" placeholder="e.g. Read 10 pages" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-plus"></i> Add Habit
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <div class="space-y-4 mb-6" id="habits-list">
+                            <!-- Habits rendered here -->
+                        </div>
+                        <div id="habits-empty" class="hidden text-center py-12 text-zinc-600 bg-[#1C1C1E] rounded-2xl border border-zinc-800/60 text-sm">
+                            No habits set yet.
+                        </div>
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 h-64">
+                            <canvas id="habitsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: WEIGHT -->
+            <section id="tab-weight" class="tab-content">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Weight Tracking</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Monitor your fitness journey.</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Log Weight</h3>
+                            <form id="weight-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Date</label>
+                                    <input type="date" id="weight-date" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Weight (kg)</label>
+                                    <input type="number" step="0.1" id="weight-input" placeholder="E.g. 75.5" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-plus"></i> Log Entry
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 mb-6 h-64">
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">History</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <tbody id="weight-list">
+                                        <!-- Weight rows here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="weight-empty" class="hidden text-center py-8 text-zinc-600 text-sm">
+                                No weight entries yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: FINANCE -->
+            <section id="tab-finance" class="tab-content">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Finances</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Track your income and expenses.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-gradient-to-br from-teal-900/40 to-zinc-900 rounded-2xl p-6 border border-teal-900/30 flex flex-col justify-between">
+                        <p class="text-teal-500/70 text-sm font-medium mb-2 uppercase tracking-wider">Total Balance</p>
+                        <p class="text-3xl font-semibold text-teal-400" id="finance-balance">£0.00</p>
+                    </div>
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 border border-zinc-800/60 flex flex-col justify-between">
+                        <p class="text-zinc-500 text-xs font-medium mb-2 flex items-center gap-2 uppercase tracking-wider"><i class="ph-fill ph-arrow-down-left text-purple-400"></i> Income</p>
+                        <p class="text-xl font-medium text-zinc-200" id="finance-income">+£0.00</p>
+                    </div>
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 border border-zinc-800/60 flex flex-col justify-between">
+                        <p class="text-zinc-500 text-xs font-medium mb-2 flex items-center gap-2 uppercase tracking-wider"><i class="ph-fill ph-arrow-up-right text-rose-400"></i> Expenses</p>
+                        <p class="text-xl font-medium text-zinc-200" id="finance-expense">-£0.00</p>
+                    </div>
+                </div>
+
+                <!-- AI Receipt & Bank Statement Scanners -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- AI Receipt Scanner Card -->
+                    <div class="bg-gradient-to-r from-[#1C1C1E] via-[#1C1C1E] to-purple-950/30 rounded-2xl p-6 shadow-sm border border-purple-500/20 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1">
+                                    <i class="ph-fill ph-sparkle"></i> AI Receipt Scanner
+                                </span>
+                            </div>
+                            <h3 class="text-base font-semibold text-zinc-100">Snap or Upload a Receipt</h3>
+                            <p class="text-xs text-zinc-400 mt-1 mb-4">Take a photo of a single receipt to extract the merchant, date, and total expense.</p>
+                        </div>
+
+                        <div>
+                            <input type="file" id="receipt-upload" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
+                            <button type="button" onclick="document.getElementById('receipt-upload').click()" id="receipt-scan-btn" class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/10 cursor-pointer">
+                                <i class="ph-bold ph-camera text-base"></i> Scan Receipt Photo
+                            </button>
+                        </div>
+
+                        <!-- Scanner Loading State -->
+                        <div id="receipt-loading" class="hidden mt-4 pt-4 border-t border-zinc-800/60 flex items-center gap-3 text-purple-400 text-xs font-medium">
+                            <i class="ph-bold ph-spinner animate-spin text-lg"></i>
+                            <span>Analysing receipt image...</span>
+                        </div>
+
+                        <!-- Scanner Preview & Extracted Result -->
+                        <div id="receipt-result" class="hidden mt-4 pt-4 border-t border-zinc-800/60">
+                            <div class="flex flex-col gap-3 bg-[#121212] p-4 rounded-xl border border-zinc-800/80">
+                                <div class="flex items-center gap-3">
+                                    <img id="receipt-preview-img" src="" alt="Receipt preview" class="w-12 h-12 rounded-lg object-cover border border-zinc-700 bg-zinc-900">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <h4 id="receipt-merchant" class="text-sm font-semibold text-zinc-100 truncate">Merchant</h4>
+                                            <span id="receipt-detected-date" class="text-[10px] text-zinc-500 bg-zinc-800/80 px-2 py-0.5 rounded shrink-0">Date</span>
+                                        </div>
+                                        <p id="receipt-items-summary" class="text-xs text-zinc-400 mt-0.5 truncate">Extracted items...</p>
+                                        <p class="text-xs font-semibold text-rose-400 mt-1">Total: £<span id="receipt-detected-amount">0.00</span></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 justify-end pt-2 border-t border-zinc-800/60">
+                                    <button type="button" onclick="confirmScannedExpense()" class="bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5">
+                                        <i class="ph-bold ph-check"></i> Add Expense
+                                    </button>
+                                    <button type="button" onclick="clearReceiptScanner()" class="text-zinc-500 hover:text-zinc-300 p-1.5 rounded-lg text-xs">
+                                        <i class="ph-bold ph-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Bank Statement Analyser Card -->
+                    <div class="bg-gradient-to-r from-[#1C1C1E] via-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 shadow-sm border border-teal-500/20 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1">
+                                    <i class="ph-fill ph-bank"></i> AI Statement Analyser
+                                </span>
+                                <span class="text-[10px] text-zinc-500 font-medium">PDF • Image • CSV</span>
+                            </div>
+                            <h3 class="text-base font-semibold text-zinc-100">Analyse Bank Statement</h3>
+                            <p class="text-xs text-zinc-400 mt-1 mb-4">Upload a bank statement (PDF, screenshot, or CSV) to extract all transactions and get AI spending insights.</p>
+                        </div>
+
+                        <div>
+                            <input type="file" id="statement-upload" accept="image/*,application/pdf,.csv,.txt" class="hidden" onchange="handleStatementUpload(event)">
+                            <button type="button" onclick="document.getElementById('statement-upload').click()" id="statement-scan-btn" class="w-full bg-teal-500 hover:bg-teal-600 text-zinc-950 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-teal-500/10 cursor-pointer">
+                                <i class="ph-bold ph-file-magnifying-glass text-base"></i> Upload Bank Statement
+                            </button>
+                        </div>
+
+                        <!-- Statement Loading State -->
+                        <div id="statement-loading" class="hidden mt-4 pt-4 border-t border-zinc-800/60 flex items-center gap-3 text-teal-400 text-xs font-medium">
+                            <i class="ph-bold ph-spinner animate-spin text-lg"></i>
+                            <span>Reading statement & categorising transactions...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statement Analysis Results Panel (Full Width when active) -->
+                <div id="statement-result" class="hidden bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-teal-500/30 mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-semibold text-zinc-100 flex items-center gap-2">
+                                    <i class="ph-fill ph-chart-polar text-teal-400"></i> Bank Statement Report
+                                </h3>
+                                <span id="statement-period" class="text-[11px] text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 rounded-md font-medium">Detected Period</span>
+                            </div>
+                            <p id="statement-ai-insight" class="text-xs text-zinc-300 mt-1.5 leading-relaxed">AI insight summary will appear here...</p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" onclick="importStatementTransactions()" class="bg-teal-500 hover:bg-teal-600 text-zinc-950 px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow">
+                                <i class="ph-bold ph-download-simple"></i> Import Selected (<span id="statement-selected-count">0</span>)
+                            </button>
+                            <button type="button" onclick="clearStatementAnalyser()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 p-2 rounded-xl text-xs transition-colors">
+                                <i class="ph-bold ph-x"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statement Metrics Breakdown -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
+                        <div class="bg-[#121212] p-3.5 rounded-xl border border-zinc-800/70">
+                            <p class="text-[10px] uppercase tracking-wider text-zinc-500">Statement Money In</p>
+                            <p id="statement-total-in" class="text-base font-semibold text-purple-400 mt-0.5">+£0.00</p>
+                        </div>
+                        <div class="bg-[#121212] p-3.5 rounded-xl border border-zinc-800/70">
+                            <p class="text-[10px] uppercase tracking-wider text-zinc-500">Statement Money Out</p>
+                            <p id="statement-total-out" class="text-base font-semibold text-rose-400 mt-0.5">-£0.00</p>
+                        </div>
+                        <div class="bg-[#121212] p-3.5 rounded-xl border border-zinc-800/70">
+                            <p class="text-[10px] uppercase tracking-wider text-zinc-500">Top Spending Category</p>
+                            <p id="statement-top-category" class="text-base font-semibold text-teal-400 mt-0.5 truncate">—</p>
+                        </div>
+                    </div>
+
+                    <!-- Extracted Transactions Table -->
+                    <div class="mt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Extracted Transactions</span>
+                            <button type="button" onclick="toggleAllStatementTx()" class="text-xs text-teal-400 hover:underline">Toggle All</button>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto space-y-2 pr-1" id="statement-tx-list">
+                            <!-- Extracted statement rows rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finance Form and Transaction List -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Add Transaction</h3>
+                            <form id="finance-form" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-3 p-1 bg-[#121212] rounded-xl border border-zinc-800/60">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="finance-type" value="income" class="peer sr-only" checked>
+                                        <div class="text-center py-2 rounded-lg text-xs font-medium text-zinc-500 peer-checked:bg-zinc-800 peer-checked:text-purple-400 transition-all">Income</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="finance-type" value="expense" class="peer sr-only">
+                                        <div class="text-center py-2 rounded-lg text-xs font-medium text-zinc-500 peer-checked:bg-zinc-800 peer-checked:text-rose-400 transition-all">Expense</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Date</label>
+                                    <input type="date" id="finance-date" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Description</label>
+                                    <input type="text" id="finance-desc" placeholder="e.g. Groceries" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Amount (£)</label>
+                                    <input type="number" step="0.01" id="finance-amount" placeholder="0.00" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-plus"></i> Add Transaction
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 h-full">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Recent Transactions</h3>
+                            <div class="space-y-3" id="finance-list">
+                                <!-- Transactions rendered here -->
+                            </div>
+                            <div id="finance-empty" class="hidden text-center py-12 text-zinc-600 text-sm">
+                                No transactions logged yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: GOALS -->
+            <section id="tab-goals" class="tab-content">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Goals</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Set targets and track your long-term milestones.</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Create Goal</h3>
+                            <form id="goal-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Goal Name</label>
+                                    <input type="text" id="goal-name" placeholder="e.g. Emergency Fund" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-zinc-500 mb-1">Target</label>
+                                        <input type="number" step="any" id="goal-target" placeholder="1000" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-zinc-500 mb-1">Unit</label>
+                                        <input type="text" id="goal-unit" placeholder="£, kg, books" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Deadline</label>
+                                    <input type="date" id="goal-date" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-plus"></i> Create Goal
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <div id="goals-list">
+                            <!-- Goals rendered here -->
+                        </div>
+                        <div id="goals-empty" class="hidden text-center py-12 text-zinc-600 bg-[#1C1C1E] rounded-2xl border border-zinc-800/60 text-sm">
+                            No active goals yet.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: DAILY STUDY -->
+            <section id="tab-study" class="tab-content">
+                <header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Daily Study</h2>
+                        <p class="text-zinc-500 mt-1 text-sm">Refreshes automatically every morning at 5:30 AM.</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-[#1C1C1E] px-4 py-2.5 rounded-xl border border-zinc-800/60">
+                        <i class="ph-fill ph-clock-countdown text-teal-400 text-lg"></i>
+                        <div>
+                            <p class="text-[10px] uppercase tracking-wider text-zinc-500">Next 5:30 AM Verse</p>
+                            <p id="study-countdown" class="text-xs font-mono font-semibold text-zinc-200">--h --m --s</p>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Daily Passage Card -->
+                <div class="bg-gradient-to-br from-[#1C1C1E] via-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 md:p-8 shadow-sm border border-zinc-800/60 mb-6 relative overflow-hidden">
+                    <div id="study-loading" class="hidden absolute inset-0 flex items-center justify-center bg-[#1C1C1E]/80 z-10">
+                        <span class="text-xs text-teal-400 font-medium flex items-center gap-2">
+                            <i class="ph-bold ph-spinner animate-spin"></i> Loading passage...
+                        </span>
+                    </div>
+                    <div id="study-content" class="transition-opacity">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                            <span id="study-cycle-label" class="text-[11px] font-medium text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-lg">5:30 AM Cycle</span>
+                            <button onclick="fetchNewVerse(true)" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                                <i class="ph-bold ph-arrows-clockwise"></i> New Passage
+                            </button>
+                        </div>
+                        <blockquote id="study-verse-text" class="text-lg md:text-xl font-medium text-zinc-100 leading-relaxed mb-4 italic">
+                            "Loading today's verse..."
+                        </blockquote>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-4 border-t border-zinc-800/60">
+                            <span id="study-verse-ref" class="text-sm font-semibold text-teal-400">—</span>
+                            <span id="study-theme-note" class="text-xs text-zinc-400"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Add Study Reflection</h3>
+                            <form id="study-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Passage Reference</label>
+                                    <input type="text" id="study-note-ref" placeholder="e.g. Psalm 23:1-3" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Personal Takeaways / Song Lyrics Idea</label>
+                                    <textarea id="study-note-text" rows="4" placeholder="Write your morning reflection, prayer, or song lyrics inspired by this verse..." class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm resize-none" required></textarea>
+                                </div>
+                                <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-notebook"></i> Save Reflection
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 h-full">
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Study Journal</h3>
+                            <div class="space-y-3" id="study-notes-list">
+                                <!-- Study notes rendered here -->
+                            </div>
+                            <div id="study-notes-empty" class="hidden text-center py-12 text-zinc-600 text-sm">
+                                No study reflections logged yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: PROFILE -->
+            <section id="tab-profile" class="tab-content">
+                <header class="mb-8">
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">User Profile & Security</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Edit your personal details, credentials, and app privacy settings.</p>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                        <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Edit Profile & Metrics</h3>
+                        <form id="profile-form" class="space-y-4">
+                            <div class="flex items-center gap-4 pb-3 border-b border-zinc-800/60">
+                                <img id="profile-preview-avatar" src="https://ui-avatars.com/api/?name=Janice+Chandler&background=14b8a6&color=fff&rounded=true" alt="Avatar Preview" class="w-14 h-14 rounded-full border border-zinc-700 object-cover">
+                                <div class="flex-1">
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Custom Avatar Image URL (Optional)</label>
+                                    <input type="url" id="profile-avatar" placeholder="https://example.com/photo.jpg" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-3 py-2 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-xs">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Full Name</label>
+                                    <input type="text" id="profile-name" placeholder="e.g. Janice Chandler" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Title / Bio</label>
+                                    <input type="text" id="profile-bio" placeholder="e.g. Songwriter & Creator" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Height (cm)</label>
+                                    <input type="number" id="profile-height" placeholder="e.g. 175" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Current Weight (kg)</label>
+                                    <input type="number" step="0.1" id="profile-weight" placeholder="e.g. 70.5" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-floppy-disk"></i> Save Profile
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">BMI Calculator</h3>
+                            <div class="flex flex-col items-center justify-center text-center py-2">
+                                <div class="w-28 h-28 rounded-full border-4 border-zinc-700 flex items-center justify-center mb-3 transition-colors duration-500" id="bmi-circle">
+                                    <span class="text-2xl font-bold text-zinc-200" id="bmi-value">--</span>
+                                </div>
+                                <h4 class="text-base font-medium text-zinc-200" id="bmi-category">No Data</h4>
+                            </div>
+                        </div>
+                        <p class="text-xs text-zinc-500 text-center">Body Mass Index formula: BMI = kg/m².</p>
+                    </div>
+
+                    <!-- Security Credentials & Access Control Card -->
+                    <div class="lg:col-span-2 bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="ph-fill ph-shield-check text-base"></i> Security & Authentication Settings
+                                </h3>
+                                <p class="text-xs text-zinc-400 mt-1">Configure your login username, password, and automatic session locking.</p>
+                            </div>
+                            <span class="text-[11px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-3 py-1 rounded-full font-medium self-start sm:self-center">Encrypted Local Auth</span>
+                        </div>
+
+                        <form id="security-form" onsubmit="saveSecurityCredentials(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-800/60">
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1">Username</label>
+                                <input type="text" id="sec-username" placeholder="e.g. admin" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-3 py-2.5 rounded-xl text-xs focus:outline-none focus:border-teal-500/50" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1">New Password</label>
+                                <input type="password" id="sec-password" placeholder="Leave blank to keep current" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-3 py-2.5 rounded-xl text-xs focus:outline-none focus:border-teal-500/50">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1">Auto-Lock Inactivity</label>
+                                <select id="sec-inactivity" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-3 py-2.5 rounded-xl text-xs focus:outline-none focus:border-teal-500/50">
+                                    <option value="0">Never (Manual lock only)</option>
+                                    <option value="5">After 5 mins</option>
+                                    <option value="15">After 15 mins</option>
+                                    <option value="30">After 30 mins</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-3 flex justify-end">
+                                <button type="submit" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-5 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-1.5">
+                                    <i class="ph-bold ph-check"></i> Update Security Credentials
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Local Storage & Standalone Settings Card -->
+                    <div class="lg:col-span-2 bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="ph-fill ph-hard-drive text-teal-400"></i> Local Storage & API Key Settings
+                                </h3>
+                                <p class="text-xs text-zinc-500 mt-1">Data is stored securely in your browser's local sandbox.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-zinc-800/60">
+                            <!-- Optional Gemini API Key for Local Standalone File -->
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1">Gemini API Key (For Local Receipt & Statement AI)</label>
+                                <div class="flex gap-2">
+                                    <input type="password" id="local-api-key" placeholder="AIzaSy... (Optional)" class="flex-1 bg-[#121212] text-zinc-300 border border-zinc-800/60 px-3 py-2.5 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-xs">
+                                    <button type="button" onclick="saveLocalApiKey()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors">
+                                        Save Key
+                                    </button>
+                                </div>
+                                <p class="text-[11px] text-zinc-500 mt-1.5">Saved locally so AI Receipt & Statement scanning works offline/locally.</p>
+                            </div>
+
+                            <!-- Backup / Restore / Reset Controls -->
+                            <div class="flex flex-wrap items-center gap-2 md:justify-end self-end">
+                                <button type="button" onclick="exportDataBackup()" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-1.5">
+                                    <i class="ph-bold ph-download-simple"></i> Export Backup (.json)
+                                </button>
+                                <input type="file" id="import-backup-file" accept=".json" class="hidden" onchange="importDataBackup(event)">
+                                <button type="button" onclick="document.getElementById('import-backup-file').click()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-1.5">
+                                    <i class="ph-bold ph-upload-simple"></i> Import Backup
+                                </button>
+                                <button type="button" onclick="resetAllLocalData()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-1.5">
+                                    <i class="ph-bold ph-trash"></i> Reset Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 w-full bg-[#18181A]/90 backdrop-blur-md border-t border-zinc-800/50 px-4 py-4 flex justify-between items-center z-20 pb-safe" id="mobile-nav">
+        <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center gap-1 text-teal-400 transition-colors" data-icon="ph-squares-four">
+            <i class="ph-fill ph-squares-four text-2xl"></i>
+            <span class="text-[10px] font-medium">Dash</span>
+        </button>
+        <button onclick="switchTab('habits')" id="mob-nav-habits" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-teal-400 transition-colors" data-icon="ph-house">
+            <i class="ph ph-house text-2xl"></i>
+            <span class="text-[10px] font-medium">Habits</span>
+        </button>
+        <button onclick="switchTab('weight')" id="mob-nav-weight" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-teal-400 transition-colors" data-icon="ph-scales">
+            <i class="ph ph-scales text-2xl"></i>
+            <span class="text-[10px] font-medium">Weight</span>
+        </button>
+        <button onclick="switchTab('finance')" id="mob-nav-finance" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-teal-400 transition-colors" data-icon="ph-wallet">
+            <i class="ph ph-wallet text-2xl"></i>
+            <span class="text-[10px] font-medium">Finances</span>
+        </button>
+        <button onclick="switchTab('goals')" id="mob-nav-goals" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-teal-400 transition-colors" data-icon="ph-target">
+            <i class="ph ph-target text-2xl"></i>
+            <span class="text-[10px] font-medium">Goals</span>
+        </button>
+        <button onclick="switchTab('study')" id="mob-nav-study" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-teal-400 transition-colors" data-icon="ph-book-open">
+            <i class="ph ph-book-open text-2xl"></i>
+            <span class="text-[10px] font-medium">Study</span>
+        </button>
+        <button onclick="switchTab('profile')" id="mob-nav-profile" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-teal-400 transition-colors" data-icon="ph-user">
+            <i class="ph ph-user text-2xl"></i>
+            <span class="text-[10px] font-medium">Profile</span>
+        </button>
+    </nav>
+
+    <!-- Custom Notification/Message Modal -->
+    <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
+        <div class="bg-[#1C1C1E] text-zinc-200 border border-zinc-700 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <i class="ph-fill ph-info text-xl text-teal-400"></i>
+            <span id="toast-message" class="text-sm font-medium">Message here</span>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- STATE MANAGEMENT ---
+        function getPastDateString(daysAgo) {
+            const d = new Date();
+            d.setDate(d.getDate() - daysAgo);
+            return d.toISOString().split('T')[0];
+        }
+
+        const defaultState = {
+            habits: [
+                { id: 1, name: 'Drink 2L Water', completedDates: [getPastDateString(0), getPastDateString(1), getPastDateString(3)] },
+                { id: 2, name: 'Read 10 Pages', completedDates: [getPastDateString(0), getPastDateString(2)] },
+                { id: 3, name: 'Exercise', completedDates: [getPastDateString(1)] }
+            ],
+            weights: [
+                { id: 1, date: '2023-10-01', weight: 75.5 },
+                { id: 2, date: '2023-10-08', weight: 74.8 },
+                { id: 3, date: '2023-10-15', weight: 74.2 },
+                { id: 4, date: '2023-10-22', weight: 73.9 }
+            ],
+            finances: [
+                { id: 1, date: '2023-10-01', desc: 'Salary', amount: 4200, type: 'income' },
+                { id: 2, date: '2023-10-05', desc: 'Groceries', amount: 150.50, type: 'expense' },
+                { id: 3, date: '2023-10-12', desc: 'Internet Bill', amount: 60, type: 'expense' }
+            ],
+            goals: [
+                { id: 1, name: 'Save for Vacation', current: 500, target: 2000, unit: '£', deadline: '2024-12-31' },
+                { id: 2, name: 'Read 24 Books', current: 10, target: 24, unit: 'books', deadline: '2024-12-31' }
+            ],
+            profile: { 
+                name: 'Janice Chandler',
+                bio: 'Personal Tracker',
+                avatarUrl: '',
+                height: 170, 
+                weight: 73.9,
+                username: 'admin',
+                password: '1234',
+                inactivityMins: 0
+            },
+            study: {
+                lastCycleKey: null,
+                currentIndex: 0,
+                currentPassage: null,
+                notes: [
+                    { id: 1, date: getPastDateString(0), ref: 'Proverbs 3:5-6', text: 'Focus on trusting the process and seeking wisdom in daily decisions.' }
+                ]
+            },
+            settings: {
+                geminiApiKey: ''
+            }
+        };
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem('lifeTrackerState');
+                if (!raw) return structuredClone(defaultState);
+                const parsed = JSON.parse(raw);
+                return {
+                    ...defaultState,
+                    ...parsed,
+                    profile: { ...defaultState.profile, ...(parsed.profile || {}) },
+                    study: { ...defaultState.study, ...(parsed.study || {}) },
+                    settings: { ...defaultState.settings, ...(parsed.settings || {}) }
+                };
+            } catch (e) {
+                return structuredClone(defaultState);
+            }
+        }
+
+        let state = loadState();
+
+        function saveState() {
+            try {
+                localStorage.setItem('lifeTrackerState', JSON.stringify(state));
+            } catch (e) {
+                showToast('Unable to save to localStorage.');
+            }
+        }
+
+        function getActiveApiKey() {
+            return (state.settings && state.settings.geminiApiKey) ? state.settings.geminiApiKey.trim() : "";
+        }
+
+        function saveLocalApiKey() {
+            const keyInput = document.getElementById('local-api-key');
+            if (!state.settings) state.settings = {};
+            state.settings.geminiApiKey = keyInput ? keyInput.value.trim() : '';
+            saveState();
+            showToast('API Key saved to localStorage!');
+        }
+
+        function saveSecurityCredentials(event) {
+            event.preventDefault();
+            const uInput = document.getElementById('sec-username').value.trim();
+            const pInput = document.getElementById('sec-password').value.trim();
+            const inactivitySelect = document.getElementById('sec-inactivity').value;
+
+            if (!uInput) {
+                showToast('Username cannot be empty.');
+                return;
+            }
+
+            state.profile.username = uInput;
+            if (pInput) {
+                state.profile.password = pInput;
+            }
+            state.profile.inactivityMins = parseInt(inactivitySelect) || 0;
+            saveState();
+            resetInactivityTimer();
+            showToast('Security credentials updated successfully!');
+        }
+
+        function handleUnlock(event) {
+            event.preventDefault();
+            const uVal = document.getElementById('lock-username-input').value.trim();
+            const pVal = document.getElementById('lock-password-input').value.trim();
+            
+            const configuredUser = (state.profile && state.profile.username) ? state.profile.username.trim() : 'admin';
+            const configuredPass = (state.profile && state.profile.password) ? state.profile.password.trim() : '1234';
+
+            if (uVal === configuredUser && pVal === configuredPass) {
+                const lockScreen = document.getElementById('auth-lock-screen');
+                lockScreen.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => { lockScreen.style.display = 'none'; }, 300);
+                document.getElementById('lock-password-input').value = '';
+                resetInactivityTimer();
+                showToast('Dashboard unlocked!');
+            } else {
+                showToast('Incorrect username or password.');
+                document.getElementById('lock-password-input').value = '';
+            }
+        }
+
+        function lockAppSession() {
+            const lockScreen = document.getElementById('auth-lock-screen');
+            lockScreen.style.display = 'flex';
+            setTimeout(() => { lockScreen.classList.remove('opacity-0', 'pointer-events-none'); }, 10);
+            document.getElementById('lock-username-input').value = state.profile.username || 'admin';
+            document.getElementById('lock-password-input').focus();
+            showToast('App locked securely.');
+        }
+
+        // Inactivity Auto-Lock Timer
+        let inactivityTimer = null;
+        function resetInactivityTimer() {
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            const mins = state.profile && state.profile.inactivityMins ? state.profile.inactivityMins : 0;
+            if (mins > 0) {
+                inactivityTimer = setTimeout(() => {
+                    lockAppSession();
+                    showToast('Locked due to inactivity.');
+                }, mins * 60 * 1000);
+            }
+        }
+
+        ['mousemove', 'keydown', 'touchstart', 'click'].forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer, { passive: true });
+        });
+
+        function exportDataBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `life-tracker-secure-backup-${getTodayDateString()}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast('Secure backup exported!');
+        }
+
+        function importDataBackup(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    state = {
+                        ...defaultState,
+                        ...imported,
+                        profile: { ...defaultState.profile, ...(imported.profile || {}) },
+                        study: { ...defaultState.study, ...(imported.study || {}) },
+                        settings: { ...defaultState.settings, ...(imported.settings || {}) }
+                    };
+                    saveState();
+                    renderHabits(); renderWeight(); renderFinance(); renderGoals(); renderProfile(); renderStudy(); renderDashboard();
+                    showToast('Backup restored successfully!');
+                } catch (err) {
+                    showToast('Invalid backup file format.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetAllLocalData() {
+            localStorage.removeItem('lifeTrackerState');
+            state = structuredClone(defaultState);
+            saveState();
+            renderHabits(); renderWeight(); renderFinance(); renderGoals(); renderProfile(); renderStudy(); renderDashboard();
+            showToast('All local data wiped.');
+        }
+
+        // Curated list of scripture references and original study themes (fetched live via public domain WEB API)
+        const studyReferences = [
+            { ref: 'Lamentations 3:22-23', theme: 'New mercies every morning and faithfulness' },
+            { ref: 'Psalm 143:8', theme: 'Starting the morning with trust and direction' },
+            { ref: 'Proverbs 3:5-6', theme: 'Seeking wisdom and guidance for the path ahead' },
+            { ref: 'Philippians 4:6-7', theme: 'Replacing anxiety with peaceful gratitude' },
+            { ref: 'Isaiah 40:31', theme: 'Renewing strength and endurance through patience' },
+            { ref: 'Psalm 119:105', theme: 'Walking with clarity and daily illumination' },
+            { ref: 'Matthew 6:33-34', theme: 'Prioritizing purpose one day at a time' },
+            { ref: 'Joshua 1:9', theme: 'Stepping forward with courage and resilience' },
+            { ref: 'Psalm 23:1-3', theme: 'Finding rest, provision, and restoration' },
+            { ref: 'Romans 12:2', theme: 'Renewal of the mind and positive transformation' }
+        ];
+
+        let weightChartInstance = null;
+        let habitsChartInstance = null;
+
+        // --- UTILS ---
+        function generateId() { return Date.now() + Math.floor(Math.random() * 1000); }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => { toast.classList.add('translate-x-full'); }, 3000);
+        }
+
+        function getTodayDateString() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            // Desktop Nav Styling
+            document.querySelectorAll('#desktop-nav .nav-btn').forEach(btn => {
+                btn.className = `nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm`;
+                const iconBase = btn.getAttribute('data-icon');
+                btn.querySelector('i').className = `ph ${iconBase} text-lg`; 
+            });
+            
+            const activeDesktopBtn = document.getElementById(`nav-${tabId}`);
+            if(activeDesktopBtn) {
+                activeDesktopBtn.className = `nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all bg-zinc-800/80 text-teal-400 font-medium text-sm shadow-sm`;
+                const iconBase = activeDesktopBtn.getAttribute('data-icon');
+                activeDesktopBtn.querySelector('i').className = `ph-fill ${iconBase} text-lg`;
+            }
+
+            // Mobile Nav Styling
+            document.querySelectorAll('#mobile-nav button').forEach(btn => {
+                btn.className = `flex flex-col items-center gap-1 text-zinc-500 transition-colors`;
+                const iconBase = btn.getAttribute('data-icon');
+                btn.querySelector('i').className = `ph ${iconBase} text-2xl`;
+            });
+
+            const activeMobileBtn = document.getElementById(`mob-nav-${tabId}`);
+            if(activeMobileBtn) {
+                activeMobileBtn.className = `flex flex-col items-center gap-1 text-teal-400 transition-colors`;
+                const iconBase = activeMobileBtn.getAttribute('data-icon');
+                activeMobileBtn.querySelector('i').className = `ph-fill ${iconBase} text-2xl`;
+            }
+
+            if (tabId === 'dashboard') renderDashboard();
+            if (tabId === 'weight') renderWeightChart();
+            if (tabId === 'habits') renderHabitsChart();
+            if (tabId === 'study') renderStudy();
+            if (tabId === 'profile') renderProfile();
+        }
+
+        // --- DASHBOARD MODULE ---
+        function renderDashboard() {
+            const today = getTodayDateString();
+
+            // 1. Habit Progress
+            const totalHabits = state.habits.length;
+            const completedToday = state.habits.filter(h => h.completedDates.includes(today)).length;
+            const habitPercent = totalHabits === 0 ? 0 : Math.round((completedToday / totalHabits) * 100);
+            
+            document.getElementById('dash-habit-percent').innerText = habitPercent + '%';
+            document.getElementById('dash-habit-bar').style.width = habitPercent + '%';
+            document.getElementById('dash-habit-text').innerText = `${completedToday} of ${totalHabits} habits completed today`;
+
+            // 2. Finance Summary
+            let inc = 0; let exp = 0;
+            state.finances.forEach(tx => {
+                if (tx.type === 'income') inc += tx.amount;
+                else exp += tx.amount;
+            });
+            const formatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+            document.getElementById('dash-finance-balance').innerText = formatter.format(inc - exp);
+            document.getElementById('dash-finance-income').innerText = formatter.format(inc);
+            document.getElementById('dash-finance-expense').innerText = formatter.format(exp);
+
+            // 3. Weight Summary
+            const sortedWeights = [...state.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (sortedWeights.length > 0) {
+                document.getElementById('dash-weight-current').innerText = sortedWeights[0].weight + ' kg';
+                if (sortedWeights.length > 1) {
+                    const diff = (sortedWeights[0].weight - sortedWeights[1].weight).toFixed(1);
+                    const isGain = diff > 0;
+                    const diffText = isGain ? `+${diff}` : `${diff}`;
+                    const color = isGain ? 'text-amber-500' : 'text-teal-400';
+                    document.getElementById('dash-weight-trend').innerHTML = `<span class="${color}">${diffText} kg</span> since last entry`;
+                } else {
+                    document.getElementById('dash-weight-trend').innerText = 'Initial weight logged';
+                }
+            } else {
+                document.getElementById('dash-weight-current').innerText = '-- kg';
+                document.getElementById('dash-weight-trend').innerText = 'No data yet';
+            }
+
+            // 4. Goals Summary
+            if (state.goals.length === 0) {
+                document.getElementById('dash-goal-percent').innerText = '0%';
+                document.getElementById('dash-goal-bar').style.width = '0%';
+            } else {
+                let totalProgress = 0;
+                state.goals.forEach(g => {
+                    totalProgress += Math.min(100, (g.current / g.target) * 100);
+                });
+                const avgProgress = Math.round(totalProgress / state.goals.length);
+                document.getElementById('dash-goal-percent').innerText = avgProgress + '%';
+                document.getElementById('dash-goal-bar').style.width = avgProgress + '%';
+            }
+        }
+
+        // --- HABITS MODULE ---
+        function renderHabits() {
+            const list = document.getElementById('habits-list');
+            const emptyState = document.getElementById('habits-empty');
+            list.innerHTML = '';
+            
+            if (state.habits.length === 0) {
+                emptyState.classList.remove('hidden');
+                renderHabitsChart();
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            const last7Days = Array.from({length: 7}, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return {
+                    dateStr: d.toISOString().split('T')[0],
+                    dayName: d.toLocaleDateString('en-US', { weekday: 'short' })
+                };
+            });
+
+            state.habits.forEach(habit => {
+                const el = document.createElement('div');
+                el.className = `group p-4 rounded-xl transition-all border bg-[#121212] border-zinc-800/60 hover:border-zinc-700`;
+                
+                let daysHtml = '';
+                last7Days.forEach(day => {
+                    const isCompleted = habit.completedDates.includes(day.dateStr);
+                    daysHtml += `
+                        <div class="flex flex-col items-center gap-1">
+                            <span class="text-[10px] ${isCompleted ? 'text-teal-400 font-medium' : 'text-zinc-500'}">${day.dayName}</span>
+                            <button onclick="toggleHabitDate(${habit.id}, '${day.dateStr}')" 
+                                    class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition-all border ${
+                                        isCompleted 
+                                        ? 'bg-teal-500/20 border-teal-500 text-teal-400' 
+                                        : 'bg-zinc-900/50 border-zinc-700 hover:border-zinc-500 text-transparent'
+                                    }">
+                                <i class="ph-bold ph-check text-xs sm:text-sm"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                el.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-sm font-medium text-zinc-200">${habit.name}</h4>
+                        <button onclick="deleteHabit(${habit.id})" class="text-zinc-600 hover:text-rose-400 transition-colors p-1">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                    <div class="flex justify-between w-full">
+                        ${daysHtml}
+                    </div>
+                `;
+                list.appendChild(el);
+            });
+            renderHabitsChart();
+        }
+
+        function toggleHabitDate(id, dateStr) {
+            const habit = state.habits.find(h => h.id === id);
+            if (habit) {
+                if (habit.completedDates.includes(dateStr)) {
+                    habit.completedDates = habit.completedDates.filter(d => d !== dateStr);
+                } else {
+                    habit.completedDates.push(dateStr);
+                }
+                saveState();
+                renderHabits();
+            }
+        }
+
+        function deleteHabit(id) {
+            state.habits = state.habits.filter(h => h.id !== id);
+            saveState();
+            renderHabits();
+            showToast('Habit deleted.');
+        }
+
+        function renderHabitsChart() {
+            const ctx = document.getElementById('habitsChart');
+            if(!ctx) return;
+
+            const last7Days = Array.from({length: 7}, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return d.toISOString().split('T')[0];
+            });
+
+            const labels = last7Days.map(dStr => new Date(dStr).toLocaleDateString(undefined, { weekday: 'short' }));
+            const data = last7Days.map(dateStr => state.habits.filter(h => h.completedDates.includes(dateStr)).length);
+
+            if (habitsChartInstance) habitsChartInstance.destroy();
+
+            habitsChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Completed Habits',
+                        data: data,
+                        backgroundColor: '#2dd4bf',
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#27272a', padding: 10 } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#71717a' }, border: { display: false }, grid: { color: '#27272a', drawTicks: false } },
+                        x: { border: { display: false }, grid: { display: false }, ticks: { color: '#71717a' } }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('habit-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('habit-input');
+            const name = input.value.trim();
+            if (name) {
+                state.habits.push({ id: generateId(), name, completedDates: [] });
+                input.value = '';
+                saveState();
+                renderHabits();
+                showToast('Habit added!');
+            }
+        });
+
+        // --- WEIGHT MODULE ---
+        function renderWeight() {
+            const list = document.getElementById('weight-list');
+            const emptyState = document.getElementById('weight-empty');
+            list.innerHTML = '';
+            
+            const sortedWeights = [...state.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (sortedWeights.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                sortedWeights.forEach(entry => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/20 transition-colors text-sm";
+                    tr.innerHTML = `
+                        <td class="py-3 px-2 text-zinc-400">${new Date(entry.date).toLocaleDateString()}</td>
+                        <td class="py-3 px-2 text-zinc-200 font-medium">${entry.weight} <span class="text-zinc-600 text-xs">kg</span></td>
+                        <td class="py-3 px-2 text-right">
+                            <button onclick="deleteWeight(${entry.id})" class="text-zinc-600 hover:text-rose-400 transition-colors">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    list.appendChild(tr);
+                });
+            }
+            renderWeightChart();
+        }
+
+        function renderWeightChart() {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            const sortedAsc = [...state.weights].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const labels = sortedAsc.map(w => new Date(w.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}));
+            const data = sortedAsc.map(w => w.weight);
+
+            if (weightChartInstance) weightChartInstance.destroy();
+
+            weightChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Weight',
+                        data: data,
+                        borderColor: '#2dd4bf',
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#121212',
+                        pointBorderColor: '#2dd4bf',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#27272a', padding: 10 } },
+                    scales: {
+                        y: { border: { display: false }, grid: { color: '#27272a', drawTicks: false }, ticks: { color: '#71717a' } },
+                        x: { border: { display: false }, grid: { display: false }, ticks: { color: '#71717a' } }
+                    }
+                }
+            });
+        }
+
+        function deleteWeight(id) {
+            state.weights = state.weights.filter(w => w.id !== id);
+            saveState();
+            renderWeight();
+            showToast('Weight entry deleted.');
+        }
+
+        document.getElementById('weight-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const weight = parseFloat(document.getElementById('weight-input').value);
+            const date = document.getElementById('weight-date').value;
+            if (weight && date) {
+                state.weights.push({ id: generateId(), date, weight });
+                document.getElementById('weight-input').value = '';
+                saveState();
+                renderWeight();
+                showToast('Weight logged!');
+            }
+        });
+
+        // --- FINANCE MODULE ---
+        function renderFinance() {
+            const list = document.getElementById('finance-list');
+            const emptyState = document.getElementById('finance-empty');
+            list.innerHTML = '';
+            
+            let totalIncome = 0; let totalExpense = 0;
+            const sortedFinances = [...state.finances].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (sortedFinances.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                sortedFinances.forEach(tx => {
+                    if (tx.type === 'income') totalIncome += tx.amount;
+                    else totalExpense += tx.amount;
+
+                    const isIncome = tx.type === 'income';
+                    const el = document.createElement('div');
+                    el.className = "flex items-center justify-between p-3 bg-[#121212] rounded-xl border border-zinc-800/40 hover:border-zinc-700 transition-colors group";
+                    el.innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center ${isIncome ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                <i class="ph-bold ${isIncome ? 'ph-arrow-down-left' : 'ph-arrow-up-right'} text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-zinc-200">${tx.desc}</p>
+                                <p class="text-[11px] text-zinc-500 uppercase tracking-wider">${new Date(tx.date).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <p class="text-sm font-medium ${isIncome ? 'text-zinc-300' : 'text-zinc-400'}">
+                                ${isIncome ? '+' : '-'}£${tx.amount.toFixed(2)}
+                            </p>
+                            <button onclick="deleteFinance(${tx.id})" class="text-zinc-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all p-1">
+                                <i class="ph ph-trash text-sm"></i>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(el);
+                });
+            }
+
+            const formatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+            document.getElementById('finance-balance').innerText = formatter.format(totalIncome - totalExpense);
+            document.getElementById('finance-income').innerText = '+' + formatter.format(totalIncome);
+            document.getElementById('finance-expense').innerText = '-' + formatter.format(totalExpense);
+        }
+
+        function deleteFinance(id) {
+            state.finances = state.finances.filter(f => f.id !== id);
+            saveState();
+            renderFinance();
+            showToast('Transaction deleted.');
+        }
+
+        document.getElementById('finance-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = document.querySelector('input[name="finance-type"]:checked').value;
+            const amount = parseFloat(document.getElementById('finance-amount').value);
+            const desc = document.getElementById('finance-desc').value.trim();
+            const date = document.getElementById('finance-date').value;
+
+            if (amount && desc && date) {
+                state.finances.push({ id: generateId(), type, amount, desc, date });
+                document.getElementById('finance-amount').value = '';
+                document.getElementById('finance-desc').value = '';
+                saveState();
+                renderFinance();
+                showToast('Transaction added!');
+            }
+        });
+
+        // --- AI RECEIPT SCANNER MODULE ---
+        let lastScannedReceipt = null;
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result;
+                    const base64 = result.split(',')[1];
+                    resolve({ base64, dataUrl: result, mimeType: file.type || 'image/jpeg' });
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                } catch (e) {}
+                await new Promise(r => setTimeout(r, delay * Math.pow(2, i)));
+            }
+            throw new Error('Failed to analyze receipt.');
+        }
+
+        async function handleReceiptUpload(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const loadingEl = document.getElementById('receipt-loading');
+            const resultEl = document.getElementById('receipt-result');
+            const scanBtn = document.getElementById('receipt-scan-btn');
+
+            loadingEl.classList.remove('hidden');
+            resultEl.classList.add('hidden');
+            scanBtn.disabled = true;
+            scanBtn.classList.add('opacity-50');
+
+            try {
+                const { base64, dataUrl, mimeType } = await fileToBase64(file);
+                document.getElementById('receipt-preview-img').src = dataUrl;
+
+                const apiKey = getActiveApiKey();
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const prompt = `Analyze this receipt image. Extract merchant, date (YYYY-MM-DD), totalAmount (number), and itemsSummary.`;
+
+                const payload = {
+                    contents: [{
+                        role: "user",
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: mimeType, data: base64 } }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                merchant: { type: "STRING" },
+                                date: { type: "STRING" },
+                                totalAmount: { type: "NUMBER" },
+                                itemsSummary: { type: "STRING" }
+                            },
+                            propertyOrdering: ["merchant", "date", "totalAmount", "itemsSummary"]
+                        }
+                    }
+                };
+
+                const responseData = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const rawJson = responseData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!rawJson) throw new Error('Could not read receipt data');
+
+                const parsed = JSON.parse(rawJson);
+                const merchant = (parsed.merchant || 'Scanned Receipt').trim();
+                const amount = typeof parsed.totalAmount === 'number' && !isNaN(parsed.totalAmount) ? parsed.totalAmount : 0;
+                const date = /^\d{4}-\d{2}-\d{2}$/.test(parsed.date) ? parsed.date : getTodayDateString();
+                const itemsSummary = (parsed.itemsSummary || 'General items').trim();
+
+                lastScannedReceipt = {
+                    merchant,
+                    amount,
+                    date,
+                    itemsSummary,
+                    fullDesc: itemsSummary ? `${merchant} (${itemsSummary})` : merchant
+                };
+
+                document.getElementById('receipt-merchant').innerText = merchant;
+                document.getElementById('receipt-detected-date').innerText = date;
+                document.getElementById('receipt-items-summary').innerText = itemsSummary;
+                document.getElementById('receipt-detected-amount').innerText = amount.toFixed(2);
+
+                const expenseRadio = document.querySelector('input[name="finance-type"][value="expense"]');
+                if (expenseRadio) expenseRadio.checked = true;
+                document.getElementById('finance-date').value = date;
+                document.getElementById('finance-desc').value = lastScannedReceipt.fullDesc.slice(0, 60);
+                if (amount > 0) document.getElementById('finance-amount').value = amount.toFixed(2);
+
+                resultEl.classList.remove('hidden');
+                showToast('Receipt analysed!');
+            } catch (err) {
+                showToast('Could not read receipt clearly. Please enter manually.');
+            } finally {
+                loadingEl.classList.add('hidden');
+                scanBtn.disabled = false;
+                scanBtn.classList.remove('opacity-50');
+                event.target.value = '';
+            }
+        }
+
+        function confirmScannedExpense() {
+            if (!lastScannedReceipt) return;
+            const amount = parseFloat(document.getElementById('finance-amount').value) || lastScannedReceipt.amount;
+            const desc = document.getElementById('finance-desc').value.trim() || lastScannedReceipt.fullDesc;
+            const date = document.getElementById('finance-date').value || lastScannedReceipt.date;
+
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount.');
+                return;
+            }
+
+            state.finances.push({ id: generateId(), type: 'expense', amount, desc, date });
+            document.getElementById('finance-amount').value = '';
+            document.getElementById('finance-desc').value = '';
+            clearReceiptScanner();
+            saveState();
+            renderFinance();
+            renderDashboard();
+            showToast('Scanned expense added!');
+        }
+
+        function clearReceiptScanner() {
+            lastScannedReceipt = null;
+            document.getElementById('receipt-result').classList.add('hidden');
+        }
+
+        // --- AI BANK STATEMENT ANALYSER MODULE ---
+        let extractedStatementData = null;
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        async function handleStatementUpload(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const loadingEl = document.getElementById('statement-loading');
+            const resultEl = document.getElementById('statement-result');
+            const scanBtn = document.getElementById('statement-scan-btn');
+
+            loadingEl.classList.remove('hidden');
+            resultEl.classList.add('hidden');
+            scanBtn.disabled = true;
+            scanBtn.classList.add('opacity-50');
+
+            try {
+                const apiKey = getActiveApiKey();
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+                const isTextFile = file.name.endsWith('.csv') || file.name.endsWith('.txt') || file.type === 'text/csv';
+
+                const prompt = `Analyse bank statement. Extract all transactions with date (YYYY-MM-DD), desc, category, amount (positive number), type ("income" or "expense"). Also provide statementPeriod, topCategory, and insight summary.`;
+
+                let parts = [{ text: prompt }];
+                if (isTextFile) {
+                    const textContent = await readFileAsText(file);
+                    parts.push({ text: textContent.slice(0, 30000) });
+                } else {
+                    const { base64, mimeType } = await fileToBase64(file);
+                    parts.push({ inlineData: { mimeType: file.type === 'application/pdf' ? 'application/pdf' : mimeType, data: base64 } });
+                }
+
+                const payload = {
+                    contents: [{ role: "user", parts }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                statementPeriod: { type: "STRING" },
+                                topCategory: { type: "STRING" },
+                                insight: { type: "STRING" },
+                                transactions: {
+                                    type: "ARRAY",
+                                    items: {
+                                        type: "OBJECT",
+                                        properties: {
+                                            date: { type: "STRING" },
+                                            desc: { type: "STRING" },
+                                            category: { type: "STRING" },
+                                            amount: { type: "NUMBER" },
+                                            type: { type: "STRING" }
+                                        },
+                                        propertyOrdering: ["date", "desc", "category", "amount", "type"]
+                                    }
+                                }
+                            },
+                            propertyOrdering: ["statementPeriod", "topCategory", "insight", "transactions"]
+                        }
+                    }
+                };
+
+                const responseData = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const rawJson = responseData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!rawJson) throw new Error('Could not parse statement');
+
+                const parsed = JSON.parse(rawJson);
+                const txs = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+
+                extractedStatementData = {
+                    period: parsed.statementPeriod || 'Recent Statement',
+                    topCategory: parsed.topCategory || 'General',
+                    insight: parsed.insight || `Extracted ${txs.length} transactions.`,
+                    transactions: txs.map((t, idx) => ({
+                        tempId: idx,
+                        selected: true,
+                        date: /^\d{4}-\d{2}-\d{2}$/.test(t.date) ? t.date : getTodayDateString(),
+                        desc: (t.desc || 'Statement Entry').trim(),
+                        category: (t.category || 'General').trim(),
+                        amount: typeof t.amount === 'number' && !isNaN(t.amount) ? Math.abs(t.amount) : 0,
+                        type: t.type && t.type.toLowerCase() === 'income' ? 'income' : 'expense'
+                    })).filter(t => t.amount > 0)
+                };
+
+                renderStatementAnalysis();
+                resultEl.classList.remove('hidden');
+                showToast(`Analysed ${extractedStatementData.transactions.length} transactions!`);
+            } catch (err) {
+                showToast('Could not analyse statement.');
+            } finally {
+                loadingEl.classList.add('hidden');
+                scanBtn.disabled = false;
+                scanBtn.classList.remove('opacity-50');
+                event.target.value = '';
+            }
+        }
+
+        function renderStatementAnalysis() {
+            if (!extractedStatementData) return;
+            document.getElementById('statement-period').innerText = extractedStatementData.period;
+            document.getElementById('statement-ai-insight').innerText = extractedStatementData.insight;
+            document.getElementById('statement-top-category').innerText = extractedStatementData.topCategory;
+
+            let totalIn = 0; let totalOut = 0; let selectedCount = 0;
+            const listEl = document.getElementById('statement-tx-list');
+            listEl.innerHTML = '';
+
+            extractedStatementData.transactions.forEach(tx => {
+                if (tx.selected) {
+                    selectedCount++;
+                    if (tx.type === 'income') totalIn += tx.amount;
+                    else totalOut += tx.amount;
+                }
+                const isIncome = tx.type === 'income';
+                const row = document.createElement('div');
+                row.className = `flex items-center justify-between p-3 rounded-xl border transition-colors ${tx.selected ? 'bg-[#121212] border-zinc-800' : 'bg-[#121212]/40 border-zinc-800/30 opacity-50'}`;
+                row.innerHTML = `
+                    <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                        <input type="checkbox" ${tx.selected ? 'checked' : ''} onchange="toggleStatementTx(${tx.tempId})" class="rounded border-zinc-700 bg-zinc-900 text-teal-500 focus:ring-0 cursor-pointer">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <p class="text-xs font-semibold text-zinc-200 truncate">${tx.desc}</p>
+                                <span class="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 shrink-0">${tx.category}</span>
+                            </div>
+                            <p class="text-[10px] text-zinc-500 mt-0.5">${tx.date}</p>
+                        </div>
+                    </label>
+                    <div class="flex items-center gap-2 shrink-0 ml-3">
+                        <button type="button" onclick="flipStatementTxType(${tx.tempId})" class="text-xs font-semibold px-2 py-1 rounded-lg border ${isIncome ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}">
+                            ${isIncome ? '+' : '-'}£${tx.amount.toFixed(2)}
+                        </button>
+                    </div>
+                `;
+                listEl.appendChild(row);
+            });
+
+            const formatter = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' });
+            document.getElementById('statement-total-in').innerText = '+' + formatter.format(totalIn);
+            document.getElementById('statement-total-out').innerText = '-' + formatter.format(totalOut);
+            document.getElementById('statement-selected-count').innerText = selectedCount;
+        }
+
+        function toggleStatementTx(tempId) {
+            if (!extractedStatementData) return;
+            const item = extractedStatementData.transactions.find(t => t.tempId === tempId);
+            if (item) { item.selected = !item.selected; renderStatementAnalysis(); }
+        }
+
+        function flipStatementTxType(tempId) {
+            if (!extractedStatementData) return;
+            const item = extractedStatementData.transactions.find(t => t.tempId === tempId);
+            if (item) { item.type = item.type === 'income' ? 'expense' : 'income'; renderStatementAnalysis(); }
+        }
+
+        function toggleAllStatementTx() {
+            if (!extractedStatementData) return;
+            const allSelected = extractedStatementData.transactions.every(t => t.selected);
+            extractedStatementData.transactions.forEach(t => { t.selected = !allSelected; });
+            renderStatementAnalysis();
+        }
+
+        function importStatementTransactions() {
+            if (!extractedStatementData) return;
+            const selected = extractedStatementData.transactions.filter(t => t.selected);
+            if (selected.length === 0) { showToast('Select at least one transaction.'); return; }
+            selected.forEach(tx => {
+                state.finances.push({ id: generateId() + Math.floor(Math.random()*10000), type: tx.type, amount: tx.amount, desc: `${tx.desc} (${tx.category})`, date: tx.date });
+            });
+            clearStatementAnalyser();
+            saveState();
+            renderFinance();
+            renderDashboard();
+            showToast(`Imported ${selected.length} transactions!`);
+        }
+
+        function clearStatementAnalyser() {
+            extractedStatementData = null;
+            document.getElementById('statement-result').classList.add('hidden');
+        }
+
+        // --- GOALS MODULE ---
+        function renderGoals() {
+            const list = document.getElementById('goals-list');
+            const emptyState = document.getElementById('goals-empty');
+            list.innerHTML = '';
+            
+            if (state.goals.length === 0) {
+                emptyState.classList.remove('hidden'); return;
+            } else emptyState.classList.add('hidden');
+
+            state.goals.forEach(goal => {
+                const percentage = Math.min(100, Math.round((goal.current / goal.target) * 100));
+                const el = document.createElement('div');
+                el.className = "bg-[#1C1C1E] rounded-2xl p-5 shadow-sm border border-zinc-800/60 mb-4 group";
+                el.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-semibold text-zinc-200 text-sm">${goal.name}</h4>
+                            <p class="text-[11px] uppercase tracking-wider text-zinc-500 mt-1">Target: ${new Date(goal.deadline).toLocaleDateString()}</p>
+                        </div>
+                        <button onclick="deleteGoal(${goal.id})" class="text-zinc-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                            <i class="ph ph-trash"></i>
+                        </button>
+                    </div>
+                    <div class="mb-2 flex justify-between items-end text-xs">
+                        <span class="font-medium text-teal-400">${goal.current} <span class="text-zinc-500">${goal.unit}</span></span>
+                        <span class="text-zinc-500">${goal.target} ${goal.unit}</span>
+                    </div>
+                    <div class="w-full bg-[#121212] rounded-full h-2 mb-4 overflow-hidden border border-zinc-800">
+                        <div class="bg-teal-500 h-2 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="number" id="update-val-${goal.id}" placeholder="Amt" class="w-20 bg-[#121212] border border-zinc-800/60 px-3 py-2 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-teal-500/50">
+                        <button onclick="updateGoalProgress(${goal.id})" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium transition-colors">Update</button>
+                    </div>
+                `;
+                list.appendChild(el);
+            });
+        }
+
+        function deleteGoal(id) {
+            state.goals = state.goals.filter(g => g.id !== id);
+            saveState();
+            renderGoals(); showToast('Goal deleted.');
+        }
+
+        function updateGoalProgress(id) {
+            const input = document.getElementById(`update-val-${id}`);
+            const addValue = parseFloat(input.value);
+            if (!isNaN(addValue)) {
+                const goal = state.goals.find(g => g.id === id);
+                if (goal) { goal.current += addValue; saveState(); renderGoals(); showToast('Progress updated!'); }
+            }
+        }
+
+        document.getElementById('goal-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('goal-name').value.trim();
+            const target = parseFloat(document.getElementById('goal-target').value);
+            const unit = document.getElementById('goal-unit').value.trim();
+            const deadline = document.getElementById('goal-date').value;
+
+            if (name && target && unit && deadline) {
+                state.goals.push({ id: generateId(), name, target, unit, deadline, current: 0 });
+                document.getElementById('goal-name').value = '';
+                document.getElementById('goal-target').value = '';
+                document.getElementById('goal-unit').value = '';
+                saveState();
+                renderGoals(); showToast('Goal created!');
+            }
+        });
+
+        // --- PROFILE MODULE ---
+        function getProfileAvatarSrc() {
+            if (state.profile.avatarUrl && state.profile.avatarUrl.trim() !== '') {
+                return state.profile.avatarUrl.trim();
+            }
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(state.profile.name || 'User')}&background=14b8a6&color=fff&rounded=true`;
+        }
+
+        function renderProfile() {
+            if (!state.profile.name) state.profile.name = 'Janice Chandler';
+            if (state.profile.username === undefined) state.profile.username = 'admin';
+            if (state.profile.password === undefined) state.profile.password = '1234';
+
+            const nameInput = document.getElementById('profile-name');
+            const bioInput = document.getElementById('profile-bio');
+            const avatarInput = document.getElementById('profile-avatar');
+            const heightInput = document.getElementById('profile-height');
+            const weightInput = document.getElementById('profile-weight');
+            const secUser = document.getElementById('sec-username');
+            const secInactivity = document.getElementById('sec-inactivity');
+            
+            if (!state.profile.weight && state.weights.length > 0) {
+                const sortedWeights = [...state.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
+                state.profile.weight = sortedWeights[0].weight;
+            }
+
+            if (nameInput) nameInput.value = state.profile.name;
+            if (bioInput) bioInput.value = state.profile.bio || '';
+            if (avatarInput) avatarInput.value = state.profile.avatarUrl || '';
+            if (secUser) secUser.value = state.profile.username || 'admin';
+            if (secInactivity) secInactivity.value = state.profile.inactivityMins || 0;
+            if (state.profile.height) heightInput.value = state.profile.height;
+            if (state.profile.weight) weightInput.value = state.profile.weight;
+
+            const apiKeyInput = document.getElementById('local-api-key');
+            if (apiKeyInput && state.settings) apiKeyInput.value = state.settings.geminiApiKey || '';
+
+            const avatarSrc = getProfileAvatarSrc();
+            ['sidebar-avatar', 'mobile-avatar', 'profile-preview-avatar'].forEach(id => {
+                const img = document.getElementById(id);
+                if (img) img.src = avatarSrc;
+            });
+
+            const sidebarName = document.getElementById('sidebar-name');
+            const sidebarBio = document.getElementById('sidebar-bio');
+            if (sidebarName) sidebarName.innerText = state.profile.name;
+            if (sidebarBio) sidebarBio.innerText = state.profile.bio || '';
+
+            calculateAndDisplayBMI();
+        }
+
+        function calculateAndDisplayBMI() {
+            const bmiValueEl = document.getElementById('bmi-value');
+            const bmiCatEl = document.getElementById('bmi-category');
+            const bmiCircleEl = document.getElementById('bmi-circle');
+
+            if (!state.profile.height || !state.profile.weight) {
+                bmiValueEl.innerText = '--';
+                bmiCatEl.innerText = 'Enter metrics';
+                bmiCircleEl.className = 'w-28 h-28 rounded-full border-4 flex items-center justify-center mb-3 border-zinc-700';
+                return;
+            }
+
+            const heightInMeters = state.profile.height / 100;
+            const bmi = (state.profile.weight / (heightInMeters * heightInMeters)).toFixed(1);
+            bmiValueEl.innerText = bmi;
+
+            let category = ''; let borderColor = ''; let textColor = '';
+            if (bmi < 18.5) { category = 'Underweight'; borderColor = 'border-blue-400'; textColor = 'text-blue-400'; }
+            else if (bmi <= 24.9) { category = 'Normal Weight'; borderColor = 'border-teal-400'; textColor = 'text-teal-400'; }
+            else if (bmi <= 29.9) { category = 'Overweight'; borderColor = 'border-amber-400'; textColor = 'text-amber-400'; }
+            else { category = 'Obese'; borderColor = 'border-rose-400'; textColor = 'text-rose-400'; }
+
+            bmiCatEl.innerText = category;
+            bmiCatEl.className = `text-base font-medium ${textColor}`;
+            bmiCircleEl.className = `w-28 h-28 rounded-full border-4 flex items-center justify-center mb-3 transition-colors duration-500 ${borderColor}`;
+        }
+
+        document.getElementById('profile-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            state.profile.name = document.getElementById('profile-name').value.trim() || 'User';
+            state.profile.bio = document.getElementById('profile-bio').value.trim();
+            state.profile.avatarUrl = document.getElementById('profile-avatar').value.trim();
+            state.profile.height = parseFloat(document.getElementById('profile-height').value);
+            const newWeight = parseFloat(document.getElementById('profile-weight').value);
+            state.profile.weight = newWeight;
+
+            if (!isNaN(newWeight)) {
+                const today = getTodayDateString();
+                const existingToday = state.weights.find(w => w.date === today);
+                if (existingToday) existingToday.weight = newWeight;
+                else state.weights.push({ id: generateId(), date: today, weight: newWeight });
+                renderWeight();
+            }
+
+            saveState();
+            renderProfile();
+            renderDashboard();
+            showToast('Profile updated!');
+        });
+
+        // --- DAILY STUDY MODULE (5:30 AM SCHEDULE) ---
+        function get530AMCycleKey() {
+            const now = new Date();
+            const cycleDate = new Date(now);
+            if (now.getHours() < 5 || (now.getHours() === 5 && now.getMinutes() < 30)) {
+                cycleDate.setDate(cycleDate.getDate() - 1);
+            }
+            return cycleDate.toISOString().split('T')[0];
+        }
+
+        function update530AMCountdown() {
+            const now = new Date();
+            const next530 = new Date(now);
+            next530.setHours(5, 30, 0, 0);
+            if (now >= next530) next530.setDate(next530.getDate() + 1);
+            const diffMs = next530 - now;
+            const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+            const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+            const countdownEl = document.getElementById('study-countdown');
+            if (countdownEl) countdownEl.innerText = `${String(hrs).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
+
+            const currentKey = get530AMCycleKey();
+            if (state.study.lastCycleKey && state.study.lastCycleKey !== currentKey) {
+                state.study.lastCycleKey = currentKey;
+                fetchNewVerse(false);
+                showToast('New 5:30 AM morning verse ready.');
+            }
+        }
+
+        async function fetchNewVerse(manualAdvance = false) {
+            const currentKey = get530AMCycleKey();
+            state.study.lastCycleKey = currentKey;
+
+            if (manualAdvance) {
+                state.study.currentIndex = (state.study.currentIndex + 1) % studyReferences.length;
+            } else {
+                const dayNumber = Math.floor(new Date(currentKey).getTime() / 86400000);
+                state.study.currentIndex = dayNumber % studyReferences.length;
+            }
+
+            const item = studyReferences[state.study.currentIndex];
+            const loadingEl = document.getElementById('study-loading');
+            const contentEl = document.getElementById('study-content');
+
+            if (loadingEl && contentEl) {
+                loadingEl.classList.remove('hidden');
+                contentEl.classList.add('opacity-40');
+            }
+
+            try {
+                const res = await fetch(`https://bible-api.com/${encodeURIComponent(item.ref)}?translation=web`);
+                if (!res.ok) throw new Error('Network error');
+                const data = await res.json();
+                state.study.currentPassage = {
+                    ref: data.reference || item.ref,
+                    text: data.text ? data.text.trim().replace(/\s+/g, ' ') : `Read ${item.ref}.`,
+                    theme: item.theme,
+                    translation: 'World English Bible (Public Domain)'
+                };
+            } catch (err) {
+                state.study.currentPassage = {
+                    ref: item.ref,
+                    text: `Read ${item.ref}. Focus: ${item.theme}.`,
+                    theme: item.theme,
+                    translation: 'Study Theme'
+                };
+            }
+
+            if (loadingEl && contentEl) {
+                loadingEl.classList.add('hidden');
+                contentEl.classList.remove('opacity-40');
+            }
+
+            saveState();
+            renderStudy();
+        }
+
+        function renderStudy() {
+            const p = state.study.currentPassage;
+            if (p) {
+                document.getElementById('study-verse-text').innerText = `"${p.text}"`;
+                document.getElementById('study-verse-ref').innerText = `${p.ref} — ${p.translation}`;
+                document.getElementById('study-theme-note').innerText = `Focus: ${p.theme}`;
+                document.getElementById('study-cycle-label').innerText = `5:30 AM Cycle: ${state.study.lastCycleKey}`;
+
+                const noteRefInput = document.getElementById('study-note-ref');
+                if (noteRefInput && !noteRefInput.value) noteRefInput.value = p.ref;
+
+                const dashRef = document.getElementById('dash-study-ref');
+                const dashSum = document.getElementById('dash-study-summary');
+                if (dashRef && dashSum) {
+                    dashRef.innerText = p.ref;
+                    dashSum.innerText = `"${p.text}"`;
+                }
+            }
+
+            const notesList = document.getElementById('study-notes-list');
+            const emptyEl = document.getElementById('study-notes-empty');
+            if (!notesList) return;
+
+            notesList.innerHTML = '';
+            if (state.study.notes.length === 0) {
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                state.study.notes.forEach(note => {
+                    const el = document.createElement('div');
+                    el.className = 'p-4 bg-[#121212] rounded-xl border border-zinc-800/60 hover:border-zinc-700 transition-colors group';
+                    el.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-semibold text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-md border border-teal-500/20">${note.ref}</span>
+                                <span class="text-[11px] text-zinc-500">${new Date(note.date).toLocaleDateString()}</span>
+                            </div>
+                            <button onclick="deleteStudyNote(${note.id})" class="text-zinc-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                <i class="ph ph-trash text-sm"></i>
+                            </button>
+                        </div>
+                        <p class="text-sm text-zinc-300 leading-relaxed">${note.text}</p>
+                    `;
+                    notesList.appendChild(el);
+                });
+            }
+        }
+
+        function deleteStudyNote(id) {
+            state.study.notes = state.study.notes.filter(n => n.id !== id);
+            saveState();
+            renderStudy();
+            showToast('Reflection deleted.');
+        }
+
+        document.getElementById('study-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const refInput = document.getElementById('study-note-ref');
+            const textInput = document.getElementById('study-note-text');
+            const ref = refInput.value.trim();
+            const text = textInput.value.trim();
+
+            if (ref && text) {
+                state.study.notes.unshift({ id: generateId(), date: getTodayDateString(), ref, text });
+                textInput.value = '';
+                saveState();
+                renderStudy();
+                showToast('Reflection saved!');
+            }
+        });
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            const today = getTodayDateString();
+            document.getElementById('weight-date').value = today;
+            document.getElementById('finance-date').value = today;
+            document.getElementById('goal-date').value = today;
+
+            renderHabits(); renderWeight(); renderFinance(); renderGoals(); renderProfile(); renderDashboard();
+            fetchNewVerse(false);
+            update530AMCountdown();
+            setInterval(update530AMCountdown, 1000);
+            switchTab('dashboard');
+
+            // Default credentials lock-screen prompt
+            const lockScreen = document.getElementById('auth-lock-screen');
+            if (lockScreen) {
+                lockScreen.style.display = 'flex';
+                document.getElementById('lock-username-input').value = state.profile.username || 'admin';
+                document.getElementById('lock-password-input').focus();
+            }
+        };
+
+    </script>
+</body>
+</html>

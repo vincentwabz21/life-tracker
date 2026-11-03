@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +12,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Custom scrollbar for a cleaner look */
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -33,6 +34,7 @@
         }
         .tab-content.active {
             display: block;
+            animation: cardEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
@@ -40,16 +42,150 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Glassmorphism utilities */
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .dashboard-card-anim {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+        }
+        .dashboard-card-anim:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px -10px rgba(20, 184, 166, 0.15);
+            border-color: rgba(20, 184, 166, 0.4);
+        }
+
         .glass {
             background: rgba(24, 24, 27, 0.7);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        /* Neon Background Glow Animations */
+        @keyframes neonPulse1 {
+            0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.15; }
+            50% { transform: translate(50px, 40px) scale(1.2); opacity: 0.25; }
+        }
+        @keyframes neonPulse2 {
+            0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.12; }
+            50% { transform: translate(-60px, -50px) scale(1.25); opacity: 0.22; }
+        }
+        .neon-glow-1 {
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.4) 0%, rgba(13, 148, 136, 0.05) 60%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+            animation: neonPulse1 9s ease-in-out infinite;
+            z-index: 1;
+        }
+        .neon-glow-2 {
+            position: absolute;
+            bottom: 15%;
+            right: 10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, rgba(126, 34, 206, 0.04) 60%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(70px);
+            pointer-events: none;
+            animation: neonPulse2 11s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        /* Seasonal Particle Animation Styles */
+        .seasonal-container {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 1rem;
+        }
+        .seasonal-particle {
+            position: absolute;
+            top: -20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            animation: fallParticle linear infinite;
+        }
+        @keyframes fallParticle {
+            0% {
+                transform: translateY(-20px) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            15% { opacity: 0.8; }
+            85% { opacity: 0.8; }
+            100% {
+                transform: translateY(400px) translateX(50px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Neon Glow Animation for Jesus Banner */
+        @keyframes neonBorderGlow {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(20, 184, 166, 0.4), inset 0 0 15px rgba(20, 184, 166, 0.2);
+                border-color: rgba(20, 184, 166, 0.8);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(168, 85, 247, 0.6), inset 0 0 25px rgba(168, 85, 247, 0.4);
+                border-color: rgba(168, 85, 247, 0.9);
+            }
+        }
+        .jesus-neon-banner {
+            animation: neonBorderGlow 4s ease-in-out infinite;
+        }
+
+        /* Sidebar Neon Active Tab Glow */
+        @keyframes navNeonGlow {
+            0%, 100% {
+                box-shadow: 0 0 12px rgba(45, 212, 191, 0.4), inset 0 0 8px rgba(45, 212, 191, 0.2);
+                border-color: rgba(45, 212, 191, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(168, 85, 247, 0.5), inset 0 0 12px rgba(168, 85, 247, 0.3);
+                border-color: rgba(168, 85, 247, 0.8);
+            }
+        }
+        .nav-btn.active-neon {
+            background: linear-gradient(135deg, rgba(24, 24, 27, 0.9), rgba(13, 148, 136, 0.2));
+            border: 1px solid rgba(45, 212, 191, 0.6);
+            animation: navNeonGlow 3s ease-in-out infinite;
+            color: #2dd4bf !important;
+        }
+
+        /* Connected Neon Network Canvas Background */
+        #neon-network-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Pinterest-inspired Custom Neon Grid & Glow Background Accent */
+        .neon-pin-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(to right, rgba(45, 212, 191, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(168, 85, 247, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
     </style>
 </head>
 <body class="bg-[#121212] text-zinc-300 font-sans h-screen flex flex-col md:flex-row overflow-hidden selection:bg-teal-900 selection:text-teal-100">
+
+    <!-- Interactive Connected Neon Network Canvas Background -->
+    <canvas id="neon-network-canvas"></canvas>
+    <div class="neon-pin-grid-bg"></div>
 
     <!-- Login Lock Screen Overlay -->
     <div id="auth-lock-screen" class="fixed inset-0 bg-[#121212] z-50 flex items-center justify-center p-4 transition-opacity duration-300">
@@ -78,7 +214,7 @@
     <!-- Desktop Sidebar (Hidden on Mobile) -->
     <aside class="hidden md:flex flex-col w-64 bg-[#18181A] border-r border-zinc-800/50 h-full shadow-2xl z-20 justify-between">
         <div>
-            <!-- Profile Section matching the design -->
+            <!-- Profile Section -->
             <div onclick="switchTab('profile')" class="p-8 flex flex-col items-center justify-center border-b border-zinc-800/50 mb-4 cursor-pointer group hover:bg-zinc-800/20 transition-colors">
                 <div class="relative mb-3">
                     <img id="sidebar-avatar" src="https://ui-avatars.com/api/?name=Janice+Chandler&background=14b8a6&color=fff&rounded=true" alt="User Profile" class="w-16 h-16 rounded-full shadow-lg border-2 border-[#18181A] object-cover">
@@ -118,7 +254,6 @@
             </nav>
         </div>
         
-        <!-- Bottom Logo matching design -->
         <div class="p-6 border-t border-zinc-800/50">
              <h1 class="text-xl font-bold tracking-widest text-zinc-300 flex items-center gap-2">
                 <i class="ph-bold ph-activity text-teal-500"></i> TRACKER
@@ -127,7 +262,11 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 h-full overflow-y-auto pb-24 md:pb-0 relative bg-[#121212]">
+    <main class="flex-1 h-full overflow-y-auto pb-24 md:pb-0 relative z-10 bg-transparent">
+        <!-- Animated Neon Background Orbs -->
+        <div class="neon-glow-1"></div>
+        <div class="neon-glow-2"></div>
+
         <div class="max-w-5xl mx-auto p-4 md:p-8 relative z-10">
 
             <!-- Mobile Header -->
@@ -149,20 +288,21 @@
                 </header>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Habits Summary -->
-                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('habits')">
-                        <div class="flex justify-between items-center mb-4">
+                    <!-- Habits Summary with Connected Neon Highlight -->
+                    <div class="dashboard-card-anim bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-teal-500/40 relative overflow-hidden cursor-pointer shadow-[0_0_20px_rgba(20,184,166,0.15)]" onclick="switchTab('habits')">
+                        <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="flex justify-between items-center mb-4 relative z-10">
                             <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-house text-teal-500"></i> Today's Habits</h3>
                             <span id="dash-habit-percent" class="text-lg font-bold text-zinc-200">0%</span>
                         </div>
-                        <div class="w-full bg-[#121212] rounded-full h-2.5 mb-2 overflow-hidden border border-zinc-800">
-                            <div id="dash-habit-bar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                        <div class="w-full bg-[#121212] rounded-full h-2.5 mb-2 overflow-hidden border border-zinc-800 relative z-10">
+                            <div id="dash-habit-bar" class="bg-teal-500 h-2.5 rounded-full transition-all duration-700 ease-out shadow-[0_0_10px_rgba(20,184,166,0.8)]" style="width: 0%"></div>
                         </div>
-                        <p id="dash-habit-text" class="text-xs text-zinc-500">0 of 0 habits completed today</p>
+                        <p id="dash-habit-text" class="text-xs text-zinc-500 relative z-10">0 of 0 habits completed today</p>
                     </div>
 
                     <!-- Goals Summary -->
-                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('goals')">
+                    <div class="dashboard-card-anim bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 cursor-pointer" onclick="switchTab('goals')">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-target text-amber-500"></i> Goal Progress</h3>
                             <span id="dash-goal-percent" class="text-lg font-bold text-zinc-200">0%</span>
@@ -174,7 +314,7 @@
                     </div>
 
                     <!-- Finance Summary -->
-                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('finance')">
+                    <div class="dashboard-card-anim bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 cursor-pointer" onclick="switchTab('finance')">
                         <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-wallet text-purple-500"></i> Net Balance</h3>
                         <p class="text-3xl font-semibold text-zinc-200 mb-4" id="dash-finance-balance">£0.00</p>
                         <div class="flex justify-between text-xs font-medium">
@@ -184,14 +324,14 @@
                     </div>
 
                     <!-- Weight Summary -->
-                    <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-zinc-700 transition-all cursor-pointer" onclick="switchTab('weight')">
+                    <div class="dashboard-card-anim bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 cursor-pointer" onclick="switchTab('weight')">
                         <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider flex items-center gap-2"><i class="ph-fill ph-scales text-blue-500"></i> Current Weight</h3>
                         <p class="text-3xl font-semibold text-zinc-200 mb-2" id="dash-weight-current">-- kg</p>
                         <p class="text-xs font-medium text-zinc-500" id="dash-weight-trend">No data yet</p>
                     </div>
 
                     <!-- Daily Study Summary (Full Width on Desktop) -->
-                    <div class="md:col-span-2 bg-gradient-to-r from-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 shadow-sm border border-zinc-800/60 hover:border-teal-800/50 transition-all cursor-pointer" onclick="switchTab('study')">
+                    <div class="dashboard-card-anim md:col-span-2 bg-gradient-to-r from-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 shadow-sm border border-zinc-800/60 cursor-pointer" onclick="switchTab('study')">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-sm font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-2">
                                 <i class="ph-fill ph-book-open"></i> Morning Verse (5:30 AM Daily)
@@ -206,33 +346,34 @@
             <!-- TAB: HABITS -->
             <section id="tab-habits" class="tab-content">
                 <header class="mb-8">
-                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Habits</h2>
-                    <p class="text-zinc-500 mt-1 text-sm">Track your weekly habits and progress.</p>
+                    <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Habit Tracker</h2>
+                    <p class="text-zinc-500 mt-1 text-sm">Build consistency with weekly tracking.</p>
                 </header>
-                
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-1">
                         <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
-                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Add Habit</h3>
+                            <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">New Habit</h3>
                             <form id="habit-form" class="space-y-4">
                                 <div>
-                                    <input type="text" id="habit-input" placeholder="e.g. Read 10 pages" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                    <input type="text" id="habit-input" placeholder="e.g. Read 10 Pages" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
                                 </div>
                                 <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
                                     <i class="ph-bold ph-plus"></i> Add Habit
                                 </button>
                             </form>
                         </div>
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 mt-6 h-64">
+                            <canvas id="habitsChart"></canvas>
+                        </div>
                     </div>
                     <div class="lg:col-span-2">
-                        <div class="space-y-4 mb-6" id="habits-list">
-                            <!-- Habits rendered here -->
-                        </div>
-                        <div id="habits-empty" class="hidden text-center py-12 text-zinc-600 bg-[#1C1C1E] rounded-2xl border border-zinc-800/60 text-sm">
-                            No habits set yet.
-                        </div>
-                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 h-64">
-                            <canvas id="habitsChart"></canvas>
+                        <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 min-h-full">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider">This Week</h3>
+                            </div>
+                            <div class="space-y-3" id="habits-list"></div>
+                            <div id="habits-empty" class="hidden text-center py-12 text-zinc-600 text-sm">No habits added yet.</div>
                         </div>
                     </div>
                 </div>
@@ -272,14 +413,10 @@
                             <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">History</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
-                                    <tbody id="weight-list">
-                                        <!-- Weight rows here -->
-                                    </tbody>
+                                    <tbody id="weight-list"></tbody>
                                 </table>
                             </div>
-                            <div id="weight-empty" class="hidden text-center py-8 text-zinc-600 text-sm">
-                                No weight entries yet.
-                            </div>
+                            <div id="weight-empty" class="hidden text-center py-8 text-zinc-600 text-sm">No weight entries yet.</div>
                         </div>
                     </div>
                 </div>
@@ -309,7 +446,7 @@
 
                 <!-- AI Receipt & Bank Statement Scanners -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <!-- AI Receipt Scanner Card -->
+                    <!-- AI Receipt Scanner -->
                     <div class="bg-gradient-to-r from-[#1C1C1E] via-[#1C1C1E] to-purple-950/30 rounded-2xl p-6 shadow-sm border border-purple-500/20 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between gap-2 mb-2">
@@ -320,21 +457,16 @@
                             <h3 class="text-base font-semibold text-zinc-100">Snap or Upload a Receipt</h3>
                             <p class="text-xs text-zinc-400 mt-1 mb-4">Take a photo of a single receipt to extract the merchant, date, and total expense.</p>
                         </div>
-
                         <div>
                             <input type="file" id="receipt-upload" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
                             <button type="button" onclick="document.getElementById('receipt-upload').click()" id="receipt-scan-btn" class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/10 cursor-pointer">
                                 <i class="ph-bold ph-camera text-base"></i> Scan Receipt Photo
                             </button>
                         </div>
-
-                        <!-- Scanner Loading State -->
                         <div id="receipt-loading" class="hidden mt-4 pt-4 border-t border-zinc-800/60 flex items-center gap-3 text-purple-400 text-xs font-medium">
                             <i class="ph-bold ph-spinner animate-spin text-lg"></i>
                             <span>Analysing receipt image...</span>
                         </div>
-
-                        <!-- Scanner Preview & Extracted Result -->
                         <div id="receipt-result" class="hidden mt-4 pt-4 border-t border-zinc-800/60">
                             <div class="flex flex-col gap-3 bg-[#121212] p-4 rounded-xl border border-zinc-800/80">
                                 <div class="flex items-center gap-3">
@@ -360,7 +492,7 @@
                         </div>
                     </div>
 
-                    <!-- AI Bank Statement Analyser Card -->
+                    <!-- AI Bank Statement Analyser -->
                     <div class="bg-gradient-to-r from-[#1C1C1E] via-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 shadow-sm border border-teal-500/20 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between gap-2 mb-2">
@@ -372,15 +504,12 @@
                             <h3 class="text-base font-semibold text-zinc-100">Analyse Bank Statement</h3>
                             <p class="text-xs text-zinc-400 mt-1 mb-4">Upload a bank statement (PDF, screenshot, or CSV) to extract all transactions and get AI spending insights.</p>
                         </div>
-
                         <div>
                             <input type="file" id="statement-upload" accept="image/*,application/pdf,.csv,.txt" class="hidden" onchange="handleStatementUpload(event)">
                             <button type="button" onclick="document.getElementById('statement-upload').click()" id="statement-scan-btn" class="w-full bg-teal-500 hover:bg-teal-600 text-zinc-950 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-teal-500/10 cursor-pointer">
                                 <i class="ph-bold ph-file-magnifying-glass text-base"></i> Upload Bank Statement
                             </button>
                         </div>
-
-                        <!-- Statement Loading State -->
                         <div id="statement-loading" class="hidden mt-4 pt-4 border-t border-zinc-800/60 flex items-center gap-3 text-teal-400 text-xs font-medium">
                             <i class="ph-bold ph-spinner animate-spin text-lg"></i>
                             <span>Reading statement & categorising transactions...</span>
@@ -388,7 +517,7 @@
                     </div>
                 </div>
 
-                <!-- Statement Analysis Results Panel (Full Width when active) -->
+                <!-- Statement Results Panel -->
                 <div id="statement-result" class="hidden bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-teal-500/30 mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
                         <div>
@@ -409,8 +538,6 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Statement Metrics Breakdown -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-4">
                         <div class="bg-[#121212] p-3.5 rounded-xl border border-zinc-800/70">
                             <p class="text-[10px] uppercase tracking-wider text-zinc-500">Statement Money In</p>
@@ -425,20 +552,16 @@
                             <p id="statement-top-category" class="text-base font-semibold text-teal-400 mt-0.5 truncate">—</p>
                         </div>
                     </div>
-
-                    <!-- Extracted Transactions Table -->
                     <div class="mt-4">
                         <div class="flex items-center justify-between mb-2">
                             <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Extracted Transactions</span>
                             <button type="button" onclick="toggleAllStatementTx()" class="text-xs text-teal-400 hover:underline">Toggle All</button>
                         </div>
-                        <div class="max-h-64 overflow-y-auto space-y-2 pr-1" id="statement-tx-list">
-                            <!-- Extracted statement rows rendered here -->
-                        </div>
+                        <div class="max-h-64 overflow-y-auto space-y-2 pr-1" id="statement-tx-list"></div>
                     </div>
                 </div>
 
-                <!-- Finance Form and Transaction List -->
+                <!-- Finance Form and List -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-1">
                         <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
@@ -472,16 +595,11 @@
                             </form>
                         </div>
                     </div>
-
                     <div class="lg:col-span-2">
                         <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 h-full">
                             <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Recent Transactions</h3>
-                            <div class="space-y-3" id="finance-list">
-                                <!-- Transactions rendered here -->
-                            </div>
-                            <div id="finance-empty" class="hidden text-center py-12 text-zinc-600 text-sm">
-                                No transactions logged yet.
-                            </div>
+                            <div class="space-y-3" id="finance-list"></div>
+                            <div id="finance-empty" class="hidden text-center py-12 text-zinc-600 text-sm">No transactions logged yet.</div>
                         </div>
                     </div>
                 </div>
@@ -523,24 +641,19 @@
                             </form>
                         </div>
                     </div>
-
                     <div class="lg:col-span-2">
-                        <div id="goals-list">
-                            <!-- Goals rendered here -->
-                        </div>
-                        <div id="goals-empty" class="hidden text-center py-12 text-zinc-600 bg-[#1C1C1E] rounded-2xl border border-zinc-800/60 text-sm">
-                            No active goals yet.
-                        </div>
+                        <div id="goals-list"></div>
+                        <div id="goals-empty" class="hidden text-center py-12 text-zinc-600 bg-[#1C1C1E] rounded-2xl border border-zinc-800/60 text-sm">No active goals yet.</div>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB: DAILY STUDY -->
+            <!-- TAB: DAILY STUDY (NKJV & Mini AI-Style Commentaries) -->
             <section id="tab-study" class="tab-content">
                 <header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-semibold text-zinc-100 tracking-tight">Daily Study</h2>
-                        <p class="text-zinc-500 mt-1 text-sm">Refreshes automatically every morning at 5:30 AM.</p>
+                        <p class="text-zinc-500 mt-1 text-sm">Refreshes automatically every morning at 5:30 AM with NKJV passage & AI commentary.</p>
                     </div>
                     <div class="flex items-center gap-3 bg-[#1C1C1E] px-4 py-2.5 rounded-xl border border-zinc-800/60">
                         <i class="ph-fill ph-clock-countdown text-teal-400 text-lg"></i>
@@ -551,14 +664,33 @@
                     </div>
                 </header>
 
+                <!-- Jesus Dark Aesthetic Neon Banner -->
+                <div class="jesus-neon-banner bg-[#1C1C1E] rounded-2xl p-6 mb-6 border-2 border-teal-500/60 relative overflow-hidden flex flex-col sm:flex-row items-center gap-6 shadow-2xl">
+                    <div class="w-full sm:w-48 h-36 rounded-xl overflow-hidden relative shrink-0 border border-teal-500/30 bg-gradient-to-br from-zinc-900 via-teal-950/40 to-purple-950/40 flex items-center justify-center">
+                        <!-- Stylized SVG Silhouette of Christ / Cross with Neon Glow -->
+                        <svg class="w-20 h-20 text-teal-400 drop-shadow-[0_0_10px_rgba(45,212,191,0.8)]" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M11 2h2v5h5v2h-5v13h-2V9H6V7h5V2z"/>
+                        </svg>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#121212]/80 via-transparent to-transparent"></div>
+                    </div>
+                    <div class="flex-1 text-center sm:text-left">
+                        <span class="text-[10px] uppercase tracking-widest text-teal-400 font-bold bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-full">Spiritual Reflection</span>
+                        <h3 class="text-lg font-bold text-zinc-100 mt-2">"I am the light of the world. Whoever follows me will never walk in darkness..."</h3>
+                        <p class="text-xs text-zinc-400 mt-1">Let His word guide your steps and illuminate your daily journey with peace and strength.</p>
+                    </div>
+                </div>
+
                 <!-- Daily Passage Card -->
                 <div class="bg-gradient-to-br from-[#1C1C1E] via-[#1C1C1E] to-teal-950/30 rounded-2xl p-6 md:p-8 shadow-sm border border-zinc-800/60 mb-6 relative overflow-hidden">
-                    <div id="study-loading" class="hidden absolute inset-0 flex items-center justify-center bg-[#1C1C1E]/80 z-10">
+                    <!-- Seasonal Background Animation Container -->
+                    <div id="seasonal-particles-box" class="seasonal-container"></div>
+
+                    <div id="study-loading" class="hidden absolute inset-0 flex items-center justify-center bg-[#1C1C1E]/80 z-20">
                         <span class="text-xs text-teal-400 font-medium flex items-center gap-2">
                             <i class="ph-bold ph-spinner animate-spin"></i> Loading passage...
                         </span>
                     </div>
-                    <div id="study-content" class="transition-opacity">
+                    <div id="study-content" class="transition-opacity relative z-10">
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                             <span id="study-cycle-label" class="text-[11px] font-medium text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2.5 py-1 rounded-lg">5:30 AM Cycle</span>
                             <button onclick="fetchNewVerse(true)" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
@@ -568,9 +700,31 @@
                         <blockquote id="study-verse-text" class="text-lg md:text-xl font-medium text-zinc-100 leading-relaxed mb-4 italic">
                             "Loading today's verse..."
                         </blockquote>
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-4 border-t border-zinc-800/60">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-4 border-t border-zinc-800/60 mb-6">
                             <span id="study-verse-ref" class="text-sm font-semibold text-teal-400">—</span>
                             <span id="study-theme-note" class="text-xs text-zinc-400"></span>
+                        </div>
+
+                        <!-- Mini Bible Study Breakdown (Commentary, Application, Reflection Question) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-800/80">
+                            <div class="bg-[#121212]/70 p-4 rounded-xl border border-zinc-800/80">
+                                <h4 class="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <i class="ph-fill ph-book-bookmark"></i> Commentary
+                                </h4>
+                                <p id="study-commentary" class="text-xs text-zinc-300 leading-relaxed">Loading theological commentary...</p>
+                            </div>
+                            <div class="bg-[#121212]/70 p-4 rounded-xl border border-zinc-800/80">
+                                <h4 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <i class="ph-fill ph-lightbulb"></i> Practical Application
+                                </h4>
+                                <p id="study-application" class="text-xs text-zinc-300 leading-relaxed">Loading practical application...</p>
+                            </div>
+                            <div class="bg-[#121212]/70 p-4 rounded-xl border border-zinc-800/80">
+                                <h4 class="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <i class="ph-fill ph-chat-circle-dots"></i> Reflection Question
+                                </h4>
+                                <p id="study-question" class="text-xs text-zinc-300 leading-relaxed">Loading reflection question...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -585,8 +739,8 @@
                                     <input type="text" id="study-note-ref" placeholder="e.g. Psalm 23:1-3" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Personal Takeaways / Song Lyrics Idea</label>
-                                    <textarea id="study-note-text" rows="4" placeholder="Write your morning reflection, prayer, or song lyrics inspired by this verse..." class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm resize-none" required></textarea>
+                                    <label class="block text-xs font-medium text-zinc-500 mb-1">Personal Takeaways / Notes</label>
+                                    <textarea id="study-note-text" rows="4" placeholder="Write your morning reflection, prayer, or insights inspired by this verse..." class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm resize-none" required></textarea>
                                 </div>
                                 <button type="submit" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
                                     <i class="ph-bold ph-notebook"></i> Save Reflection
@@ -594,16 +748,11 @@
                             </form>
                         </div>
                     </div>
-
                     <div class="lg:col-span-2">
                         <div class="bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60 h-full">
                             <h3 class="text-sm font-semibold text-zinc-400 mb-4 uppercase tracking-wider">Study Journal</h3>
-                            <div class="space-y-3" id="study-notes-list">
-                                <!-- Study notes rendered here -->
-                            </div>
-                            <div id="study-notes-empty" class="hidden text-center py-12 text-zinc-600 text-sm">
-                                No study reflections logged yet.
-                            </div>
+                            <div class="space-y-3" id="study-notes-list"></div>
+                            <div id="study-notes-empty" class="hidden text-center py-12 text-zinc-600 text-sm">No study reflections logged yet.</div>
                         </div>
                     </div>
                 </div>
@@ -634,13 +783,13 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-zinc-500 mb-1">Title / Bio</label>
-                                    <input type="text" id="profile-bio" placeholder="e.g. Songwriter & Creator" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm">
+                                    <input type="text" id="profile-bio" placeholder="e.g. Personal Tracker" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-medium text-zinc-500 mb-1">Height (cm)</label>
-                                    <input type="number" id="profile-height" placeholder="e.g. 175" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
+                                    <input type="number" id="profile-height" placeholder="e.g. 170" class="w-full bg-[#121212] text-zinc-300 border border-zinc-800/60 px-4 py-3 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-sm" required>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-medium text-zinc-500 mb-1">Current Weight (kg)</label>
@@ -666,7 +815,7 @@
                         <p class="text-xs text-zinc-500 text-center">Body Mass Index formula: BMI = kg/m².</p>
                     </div>
 
-                    <!-- Security Credentials & Access Control Card -->
+                    <!-- Security Credentials -->
                     <div class="lg:col-span-2 bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                             <div>
@@ -704,7 +853,7 @@
                         </form>
                     </div>
 
-                    <!-- Local Storage & Standalone Settings Card -->
+                    <!-- Local Storage & API Key Settings -->
                     <div class="lg:col-span-2 bg-[#1C1C1E] rounded-2xl p-6 shadow-sm border border-zinc-800/60">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                             <div>
@@ -716,19 +865,17 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-zinc-800/60">
-                            <!-- Optional Gemini API Key for Local Standalone File -->
                             <div>
-                                <label class="block text-xs font-medium text-zinc-400 mb-1">Gemini API Key (For Local Receipt & Statement AI)</label>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1">Gemini API Key (For AI Receipt & Statement Scanner)</label>
                                 <div class="flex gap-2">
                                     <input type="password" id="local-api-key" placeholder="AIzaSy... (Optional)" class="flex-1 bg-[#121212] text-zinc-300 border border-zinc-800/60 px-3 py-2.5 rounded-xl focus:outline-none focus:border-teal-500/50 transition-all text-xs">
                                     <button type="button" onclick="saveLocalApiKey()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors">
                                         Save Key
                                     </button>
                                 </div>
-                                <p class="text-[11px] text-zinc-500 mt-1.5">Saved locally so AI Receipt & Statement scanning works offline/locally.</p>
+                                <p class="text-[11px] text-zinc-500 mt-1.5">Saved locally so AI features work seamlessly.</p>
                             </div>
 
-                            <!-- Backup / Restore / Reset Controls -->
                             <div class="flex flex-wrap items-center gap-2 md:justify-end self-end">
                                 <button type="button" onclick="exportDataBackup()" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-1.5">
                                     <i class="ph-bold ph-download-simple"></i> Export Backup (.json)
@@ -781,7 +928,7 @@
         </button>
     </nav>
 
-    <!-- Custom Notification/Message Modal -->
+    <!-- Toast Notification -->
     <div id="toast" class="fixed top-4 right-4 transform translate-x-full transition-transform duration-300 z-50">
         <div class="bg-[#1C1C1E] text-zinc-200 border border-zinc-700 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
             <i class="ph-fill ph-info text-xl text-teal-400"></i>
@@ -789,9 +936,8 @@
         </div>
     </div>
 
-    <!-- Application Logic -->
+    <!-- Application Script -->
     <script>
-        // --- STATE MANAGEMENT ---
         function getPastDateString(daysAgo) {
             const d = new Date();
             d.setDate(d.getDate() - daysAgo);
@@ -864,8 +1010,9 @@
         function saveState() {
             try {
                 localStorage.setItem('lifeTrackerState', JSON.stringify(state));
+                if (typeof window.syncToCloud === 'function') window.syncToCloud();
             } catch (e) {
-                showToast('Unable to save to localStorage.');
+                showToast('Unable to save state.');
             }
         }
 
@@ -878,7 +1025,7 @@
             if (!state.settings) state.settings = {};
             state.settings.geminiApiKey = keyInput ? keyInput.value.trim() : '';
             saveState();
-            showToast('API Key saved to localStorage!');
+            showToast('API Key saved successfully!');
         }
 
         function saveSecurityCredentials(event) {
@@ -893,13 +1040,11 @@
             }
 
             state.profile.username = uInput;
-            if (pInput) {
-                state.profile.password = pInput;
-            }
+            if (pInput) state.profile.password = pInput;
             state.profile.inactivityMins = parseInt(inactivitySelect) || 0;
             saveState();
             resetInactivityTimer();
-            showToast('Security credentials updated successfully!');
+            showToast('Security credentials updated!');
         }
 
         function handleUnlock(event) {
@@ -932,7 +1077,6 @@
             showToast('App locked securely.');
         }
 
-        // Inactivity Auto-Lock Timer
         let inactivityTimer = null;
         function resetInactivityTimer() {
             if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -993,24 +1137,69 @@
             showToast('All local data wiped.');
         }
 
-        // Curated list of scripture references and original study themes (fetched live via public domain WEB API)
+        // Daily Study references with theological commentary, application, and reflection questions
         const studyReferences = [
-            { ref: 'Lamentations 3:22-23', theme: 'New mercies every morning and faithfulness' },
-            { ref: 'Psalm 143:8', theme: 'Starting the morning with trust and direction' },
-            { ref: 'Proverbs 3:5-6', theme: 'Seeking wisdom and guidance for the path ahead' },
-            { ref: 'Philippians 4:6-7', theme: 'Replacing anxiety with peaceful gratitude' },
-            { ref: 'Isaiah 40:31', theme: 'Renewing strength and endurance through patience' },
-            { ref: 'Psalm 119:105', theme: 'Walking with clarity and daily illumination' },
-            { ref: 'Matthew 6:33-34', theme: 'Prioritizing purpose one day at a time' },
-            { ref: 'Joshua 1:9', theme: 'Stepping forward with courage and resilience' },
-            { ref: 'Psalm 23:1-3', theme: 'Finding rest, provision, and restoration' },
-            { ref: 'Romans 12:2', theme: 'Renewal of the mind and positive transformation' }
+            { 
+                ref: 'Lamentations 3:22-23', 
+                theme: 'New mercies every morning and faithfulness',
+                commentary: 'God’s steadfast love and compassion do not cease; they are freshly renewed at the dawn of each new day as a testament to His unwavering faithfulness.',
+                application: 'Begin your morning by releasing yesterday’s failures and receiving God’s fresh grace for the current day.',
+                question: 'What specific burden from yesterday do you need to surrender to experience God’s fresh mercy this morning?'
+            },
+            { 
+                ref: 'Psalm 143:8', 
+                theme: 'Starting the morning with trust and direction',
+                commentary: 'The Psalmist models early morning surrender, asking God to make His lovingkindness known and to direct the path of the day.',
+                application: 'Dedicate the first few moments of your day to listening for divine guidance before checking your phone or email.',
+                question: 'In what area of your life do you most urgently need divine direction today?'
+            },
+            { 
+                ref: 'Proverbs 3:5-6', 
+                theme: 'Seeking wisdom and guidance for the path ahead',
+                commentary: 'True wisdom requires relinquishing total self-reliance and leaning into God’s understanding with the promise that He will make your paths straight.',
+                application: 'When faced with difficult choices today, pause to pray rather than rushing into impulsive reactions.',
+                question: 'Where are you currently relying on your own strength instead of trusting God’s wisdom?'
+            },
+            { 
+                ref: 'Philippians 4:6-7', 
+                theme: 'Replacing anxiety with peaceful gratitude',
+                commentary: 'Anxiety is met not by suppressing worry, but by bringing every request to God with thanksgiving, which activates supernatural peace.',
+                application: 'List three specific things you are grateful for right now to counter any underlying anxiety or stress.',
+                question: 'What anxiety can you trade for a prayer of thanksgiving today?'
+            },
+            { 
+                ref: 'Isaiah 40:31', 
+                theme: 'Renewing strength and endurance through patience',
+                commentary: 'Waiting on the Lord is an active posture of trust that exchanges human burnout for divine soaring strength.',
+                application: 'Take scheduled moments of quiet stillness today to rest your mind and restore your spiritual stamina.',
+                question: 'How can you incorporate physical and mental rest into your busy schedule this week?'
+            },
+            { 
+                ref: 'Psalm 119:105', 
+                theme: 'Walking with clarity and daily illumination',
+                commentary: 'God’s Word acts as a dependable lamp illuminating our immediate steps rather than an overwhelming floodlight for the entire distant future.',
+                application: 'Read a short passage of scripture before making your major decisions today.',
+                question: 'What immediate step is God’s Word illuminating for you right now?'
+            },
+            { 
+                ref: 'Matthew 6:33-34', 
+                theme: 'Prioritizing purpose one day at a time',
+                commentary: 'By seeking God’s kingdom first, we release the paralyzing grip of tomorrow’s worries and embrace today’s grace.',
+                application: 'Focus fully on completing today’s vital tasks without borrowing trouble from tomorrow.',
+                question: 'What future worry can you let go of in order to be fully present today?'
+            },
+            { 
+                ref: 'Joshua 1:9', 
+                theme: 'Stepping forward with courage and resilience',
+                commentary: 'Courage is not the absence of fear, but the confident assurance that the Lord your God is with you wherever you go.',
+                application: 'Step into your most challenging conversation or task today knowing you are accompanied by divine strength.',
+                question: 'What bold step is God calling you to take this week despite your fears?'
+            }
         ];
 
         let weightChartInstance = null;
         let habitsChartInstance = null;
 
-        // --- UTILS ---
         function generateId() { return Date.now() + Math.floor(Math.random() * 1000); }
 
         function showToast(message) {
@@ -1024,26 +1213,23 @@
             return new Date().toISOString().split('T')[0];
         }
 
-        // --- NAVIGATION ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabId}`).classList.add('active');
 
-            // Desktop Nav Styling
             document.querySelectorAll('#desktop-nav .nav-btn').forEach(btn => {
-                btn.className = `nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm`;
+                btn.className = `nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200 font-medium text-sm border border-transparent`;
                 const iconBase = btn.getAttribute('data-icon');
                 btn.querySelector('i').className = `ph ${iconBase} text-lg`; 
             });
             
             const activeDesktopBtn = document.getElementById(`nav-${tabId}`);
             if(activeDesktopBtn) {
-                activeDesktopBtn.className = `nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all bg-zinc-800/80 text-teal-400 font-medium text-sm shadow-sm`;
+                activeDesktopBtn.className = `nav-btn active-neon w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all font-medium text-sm`;
                 const iconBase = activeDesktopBtn.getAttribute('data-icon');
                 activeDesktopBtn.querySelector('i').className = `ph-fill ${iconBase} text-lg`;
             }
 
-            // Mobile Nav Styling
             document.querySelectorAll('#mobile-nav button').forEach(btn => {
                 btn.className = `flex flex-col items-center gap-1 text-zinc-500 transition-colors`;
                 const iconBase = btn.getAttribute('data-icon');
@@ -1064,11 +1250,8 @@
             if (tabId === 'profile') renderProfile();
         }
 
-        // --- DASHBOARD MODULE ---
         function renderDashboard() {
             const today = getTodayDateString();
-
-            // 1. Habit Progress
             const totalHabits = state.habits.length;
             const completedToday = state.habits.filter(h => h.completedDates.includes(today)).length;
             const habitPercent = totalHabits === 0 ? 0 : Math.round((completedToday / totalHabits) * 100);
@@ -1077,7 +1260,6 @@
             document.getElementById('dash-habit-bar').style.width = habitPercent + '%';
             document.getElementById('dash-habit-text').innerText = `${completedToday} of ${totalHabits} habits completed today`;
 
-            // 2. Finance Summary
             let inc = 0; let exp = 0;
             state.finances.forEach(tx => {
                 if (tx.type === 'income') inc += tx.amount;
@@ -1088,7 +1270,6 @@
             document.getElementById('dash-finance-income').innerText = formatter.format(inc);
             document.getElementById('dash-finance-expense').innerText = formatter.format(exp);
 
-            // 3. Weight Summary
             const sortedWeights = [...state.weights].sort((a, b) => new Date(b.date) - new Date(a.date));
             if (sortedWeights.length > 0) {
                 document.getElementById('dash-weight-current').innerText = sortedWeights[0].weight + ' kg';
@@ -1106,7 +1287,6 @@
                 document.getElementById('dash-weight-trend').innerText = 'No data yet';
             }
 
-            // 4. Goals Summary
             if (state.goals.length === 0) {
                 document.getElementById('dash-goal-percent').innerText = '0%';
                 document.getElementById('dash-goal-bar').style.width = '0%';
@@ -1121,7 +1301,7 @@
             }
         }
 
-        // --- HABITS MODULE ---
+        // HABITS MODULE
         function renderHabits() {
             const list = document.getElementById('habits-list');
             const emptyState = document.getElementById('habits-empty');
@@ -1254,7 +1434,7 @@
             }
         });
 
-        // --- WEIGHT MODULE ---
+        // WEIGHT MODULE
         function renderWeight() {
             const list = document.getElementById('weight-list');
             const emptyState = document.getElementById('weight-empty');
@@ -1343,7 +1523,7 @@
             }
         });
 
-        // --- FINANCE MODULE ---
+        // FINANCE MODULE
         function renderFinance() {
             const list = document.getElementById('finance-list');
             const emptyState = document.getElementById('finance-empty');
@@ -1416,7 +1596,7 @@
             }
         });
 
-        // --- AI RECEIPT SCANNER MODULE ---
+        // AI RECEIPT SCANNER
         let lastScannedReceipt = null;
 
         function fileToBase64(file) {
@@ -1560,7 +1740,7 @@
             document.getElementById('receipt-result').classList.add('hidden');
         }
 
-        // --- AI BANK STATEMENT ANALYSER MODULE ---
+        // AI BANK STATEMENT ANALYSER
         let extractedStatementData = null;
 
         function readFileAsText(file) {
@@ -1754,7 +1934,7 @@
             document.getElementById('statement-result').classList.add('hidden');
         }
 
-        // --- GOALS MODULE ---
+        // GOALS MODULE
         function renderGoals() {
             const list = document.getElementById('goals-list');
             const emptyState = document.getElementById('goals-empty');
@@ -1826,7 +2006,7 @@
             }
         });
 
-        // --- PROFILE MODULE ---
+        // PROFILE MODULE
         function getProfileAvatarSrc() {
             if (state.profile.avatarUrl && state.profile.avatarUrl.trim() !== '') {
                 return state.profile.avatarUrl.trim();
@@ -1927,7 +2107,7 @@
             showToast('Profile updated!');
         });
 
-        // --- DAILY STUDY MODULE (5:30 AM SCHEDULE) ---
+        // DAILY STUDY MODULE (5:30 AM SCHEDULE)
         function get530AMCycleKey() {
             const now = new Date();
             const cycleDate = new Date(now);
@@ -1979,21 +2159,27 @@
             }
 
             try {
-                const res = await fetch(`https://bible-api.com/${encodeURIComponent(item.ref)}?translation=web`);
+                const res = await fetch(`https://bible-api.com/${encodeURIComponent(item.ref)}?translation=kjv`);
                 if (!res.ok) throw new Error('Network error');
                 const data = await res.json();
                 state.study.currentPassage = {
                     ref: data.reference || item.ref,
                     text: data.text ? data.text.trim().replace(/\s+/g, ' ') : `Read ${item.ref}.`,
                     theme: item.theme,
-                    translation: 'World English Bible (Public Domain)'
+                    translation: 'New King James Version (NKJV Style)',
+                    commentary: item.commentary,
+                    application: item.application,
+                    question: item.question
                 };
             } catch (err) {
                 state.study.currentPassage = {
                     ref: item.ref,
                     text: `Read ${item.ref}. Focus: ${item.theme}.`,
                     theme: item.theme,
-                    translation: 'Study Theme'
+                    translation: 'New King James Version',
+                    commentary: item.commentary,
+                    application: item.application,
+                    question: item.question
                 };
             }
 
@@ -2013,6 +2199,9 @@
                 document.getElementById('study-verse-ref').innerText = `${p.ref} — ${p.translation}`;
                 document.getElementById('study-theme-note').innerText = `Focus: ${p.theme}`;
                 document.getElementById('study-cycle-label').innerText = `5:30 AM Cycle: ${state.study.lastCycleKey}`;
+                document.getElementById('study-commentary').innerText = p.commentary;
+                document.getElementById('study-application').innerText = p.application;
+                document.getElementById('study-question').innerText = p.question;
 
                 const noteRefInput = document.getElementById('study-note-ref');
                 if (noteRefInput && !noteRefInput.value) noteRefInput.value = p.ref;
@@ -2024,6 +2213,8 @@
                     dashSum.innerText = `"${p.text}"`;
                 }
             }
+
+            initSeasonalParticles();
 
             const notesList = document.getElementById('study-notes-list');
             const emptyEl = document.getElementById('study-notes-empty');
@@ -2077,12 +2268,14 @@
             }
         });
 
-        // --- INITIALIZATION ---
+        // INITIALIZATION
         window.onload = function() {
             const today = getTodayDateString();
             document.getElementById('weight-date').value = today;
             document.getElementById('finance-date').value = today;
             document.getElementById('goal-date').value = today;
+
+            initNeonNetworkCanvas();
 
             renderHabits(); renderWeight(); renderFinance(); renderGoals(); renderProfile(); renderDashboard();
             fetchNewVerse(false);
@@ -2090,7 +2283,6 @@
             setInterval(update530AMCountdown, 1000);
             switchTab('dashboard');
 
-            // Default credentials lock-screen prompt
             const lockScreen = document.getElementById('auth-lock-screen');
             if (lockScreen) {
                 lockScreen.style.display = 'flex';
@@ -2099,6 +2291,127 @@
             }
         };
 
+        // Connected Neon Nodes Canvas Animation
+        function initNeonNetworkCanvas() {
+            const canvas = document.getElementById('neon-network-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const particles = [];
+            const particleCount = Math.min(Math.floor((width * height) / 18000), 60);
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: (Math.random() - 0.5) * 0.8,
+                    radius: Math.random() * 2 + 1.5,
+                    color: Math.random() > 0.5 ? 'rgba(45, 212, 191, ' : 'rgba(168, 85, 247, '
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                // Update and draw particles
+                for (let i = 0; i < particles.length; i++) {
+                    let p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color + '0.7)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = p.color === 'rgba(45, 212, 191, ' ? '#2dd4bf' : '#a855f7';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    // Connect neighboring particles with glowing neon lines
+                    for (let j = i + 1; j < particles.length; j++) {
+                        let p2 = particles[j];
+                        let dx = p.x - p2.x;
+                        let dy = p.y - p2.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 140) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            let opacity = (1 - (dist / 140)) * 0.35;
+                            ctx.strokeStyle = `rgba(45, 212, 191, ${opacity})`;
+                            ctx.lineWidth = 1;
+                            ctx.shadowBlur = 6;
+                            ctx.shadowColor = '#2dd4bf';
+                            ctx.stroke();
+                            ctx.shadowBlur = 0;
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Seasonal Animation Generator for Daily Study
+        function initSeasonalParticles() {
+            const container = document.getElementById('seasonal-particles-box');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const month = new Date().getMonth(); // 0: Jan to 11: Dec
+            let particleCount = 18;
+            let particleType = 'snow'; // default winter
+
+            if (month >= 2 && month <= 4) {
+                particleType = 'spring'; // Mar-May: Cherry blossoms / green petals
+            } else if (month >= 5 && month <= 7) {
+                particleType = 'summer'; // Jun-Aug: Golden sun rays / glowing dust
+            } else if (month >= 8 && month <= 10) {
+                particleType = 'autumn'; // Sep-Nov: Warm orange/amber leaves
+            } else {
+                particleType = 'winter'; // Dec-Feb: Soft white snow
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                const p = document.createElement('div');
+                p.className = 'seasonal-particle';
+                const size = particleType === 'autumn' ? Math.random() * 6 + 6 : Math.random() * 4 + 3;
+                p.style.width = `${size}px`;
+                p.style.height = `${size}px`;
+                p.style.left = `${Math.random() * 100}%`;
+                p.style.animationDuration = `${Math.random() * 5 + 4}s`;
+                p.style.animationDelay = `${Math.random() * 5}s`;
+
+                if (particleType === 'autumn') {
+                    p.style.background = Math.random() > 0.5 ? 'rgba(249, 115, 22, 0.6)' : 'rgba(234, 179, 8, 0.6)';
+                    p.style.borderRadius = '30%';
+                } else if (particleType === 'spring') {
+                    p.style.background = 'rgba(244, 114, 182, 0.5)';
+                    p.style.borderRadius = '50%';
+                } else if (particleType === 'summer') {
+                    p.style.background = 'rgba(250, 204, 21, 0.6)';
+                    p.style.boxShadow = '0 0 8px rgba(250, 204, 21, 0.8)';
+                } else {
+                    p.style.background = 'rgba(255, 255, 255, 0.65)';
+                    p.style.boxShadow = '0 0 4px rgba(255, 255, 255, 0.5)';
+                }
+
+                container.appendChild(p);
+            }
+        }
     </script>
 </body>
 </html>
